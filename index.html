@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>極速羊奶配送導航系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #030712; color: #f9fafb; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .cap-badge { box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body class="h-screen flex flex-col justify-between max-w-md mx-auto p-3 font-sans">
+
+  <!-- ================= 視圖 1：出車速審與裝箱引導 (PREP SCREEN) ================= -->
+  <div id="screen-prep" class="flex-1 flex flex-col justify-between overflow-hidden">
+    <div>
+      <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <h1 class="text-lg font-black text-amber-400 tracking-wide">出車前置審核</h1>
+        <button onclick="fetchMasterData()" class="px-2.5 py-1 text-xs bg-gray-800 text-gray-300 rounded font-bold active:bg-gray-700">🔄 重新讀取雲端</button>
+      </div>
+
+      <!-- 威士登鑰匙強制鎖定 -->
+      <div class="my-3 p-3 bg-red-950/80 border-2 border-red-600 rounded-xl">
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" id="chk-key" class="w-6 h-6 rounded text-red-600 focus:ring-0 bg-gray-900 border-gray-600">
+          <span class="text-sm font-black text-red-200">🔑 威士登幼兒園鑰匙已在身上口袋</span>
+        </label>
+      </div>
+
+      <!-- 快捷功能 -->
+      <div class="flex gap-2 mb-2">
+        <button onclick="openPackingModal()" class="flex-1 py-2 bg-blue-900/60 border border-blue-500/50 rounded-lg text-xs font-bold text-blue-200">📦 查看裝箱指南 (49瓶/層)</button>
+        <button onclick="autoExcludeKnownInactive()" class="px-3 py-2 bg-gray-800 rounded-lg text-xs font-bold text-amber-400">一鍵套用昨日停送</button>
+      </div>
+
+      <div class="text-xs text-gray-400 mb-1 flex justify-between">
+        <span>點擊號碼方塊切換（綠:送 / 灰:停送）：</span>
+        <span id="prep-active-count" class="text-emerald-400 font-bold">載入中...</span>
+      </div>
+
+      <!-- 號碼方塊矩陣牆 -->
+      <div id="grid-container" class="grid grid-cols-4 gap-1.5 overflow-y-auto max-h-[50vh] p-1 bg-gray-950 rounded-xl border border-gray-800">
+        <!-- 動態渲染號碼方塊 -->
+      </div>
+    </div>
+
+    <div class="pt-2">
+      <button onclick="startDelivery()" class="w-full h-16 bg-emerald-600 active:bg-emerald-700 text-white font-black text-xl rounded-2xl shadow-xl flex items-center justify-center gap-2">
+        <span>確認出車 ➔ 開始導航</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 視圖 2：核心配送畫面 (DELIVERY SCREEN) ================= -->
+  <div id="screen-delivery" class="hidden flex-1 flex flex-col justify-between">
+    
+    <!-- 頂部資訊列 -->
+    <header class="flex justify-between items-center pb-2 border-b border-gray-800">
+      <div class="flex items-center gap-2">
+        <span id="card-zone" class="px-2 py-0.5 text-xs font-black bg-purple-900 text-purple-200 rounded border border-purple-700">A區</span>
+        <span id="delivery-progress" class="text-base font-black text-emerald-400 font-mono">01 / 85</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleVoice()" id="btn-voice" class="px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 font-bold">🔊 播報: 開</button>
+        <button onclick="openHistoryModal()" class="px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 font-bold">📋 歷史</button>
+        <button onclick="returnToPrep()" class="px-2 py-1 text-xs rounded bg-gray-800 text-amber-400 font-bold">審核</button>
+      </div>
+    </header>
+
+    <!-- 中間核心資訊 -->
+    <main class="my-auto py-2 space-y-2.5">
+      
+      <!-- 社區名稱與特殊警示 -->
+      <div class="bg-gray-900 p-3 rounded-2xl border border-gray-800">
+        <div class="flex justify-between items-center">
+          <span id="card-community" class="text-xl font-black text-amber-300 truncate">載入中...</span>
+          <span id="card-seq" class="text-xs font-mono bg-gray-800 px-2 py-0.5 rounded text-gray-400">#0000</span>
+        </div>
+        <div id="card-warning-wrap" class="hidden mt-1.5 p-1.5 bg-red-950 border border-red-700 rounded-lg text-xs font-bold text-red-200 flex items-center gap-1.5">
+          <span>⚠️</span>
+          <span id="card-warning-text"></span>
+        </div>
+      </div>
+
+      <!-- 地址（單擊喚醒導航） -->
+      <a id="nav-btn" href="#" class="block bg-blue-950/40 border-2 border-blue-500/80 active:bg-blue-900/60 p-3 rounded-2xl transition">
+        <div class="flex justify-between text-xs font-bold text-blue-400 mb-0.5">
+          <span>📍 點擊立即開啟導航</span>
+          <span>開啟地圖 ➔</span>
+        </div>
+        <div id="card-address" class="text-xl sm:text-2xl font-black text-white leading-tight">--</div>
+        <div id="card-box" class="mt-1.5 text-xs font-bold text-gray-300 bg-gray-800 px-2 py-0.5 rounded inline-block">箱位：載入中</div>
+      </a>
+
+      <!-- 團戶專屬卡片 (當站點為團戶時顯示) -->
+      <div id="card-group-banner" class="hidden bg-gradient-to-r from-red-900 to-amber-900 p-3 rounded-2xl border-2 border-amber-500 text-center space-y-1">
+        <div class="text-lg font-black text-white tracking-widest">【 團戶・幼兒園配送 】</div>
+        <div id="card-group-desc" class="text-sm font-bold text-amber-200">取專屬塑膠袋整袋送入</div>
+      </div>
+
+      <!-- 物理映射佈局：左冷 (❄️) 右熱 (🔥) -->
+      <div id="caps-grid" class="grid grid-cols-2 gap-2">
+        
+        <!-- 左箱：冷藏 (❄️ 側柱側，輕) -->
+        <div class="bg-cyan-950/40 border-2 border-cyan-500/70 rounded-2xl p-2.5 flex flex-col justify-between min-h-[135px]">
+          <div class="flex justify-between items-center border-b border-cyan-800/50 pb-1">
+            <span class="text-xs font-black text-cyan-300 flex items-center gap-1">❄️ 左冷箱</span>
+            <span id="cold-count-badge" class="text-xs bg-cyan-900 text-cyan-100 font-mono px-1.5 rounded font-bold">0 瓶</span>
+          </div>
+          <div id="cold-items-container" class="space-y-1 my-auto py-1"></div>
+        </div>
+
+        <!-- 右箱：溫熱 (🔥 排氣管側，重) -->
+        <div class="bg-red-950/40 border-2 border-red-500/70 rounded-2xl p-2.5 flex flex-col justify-between min-h-[135px]">
+          <div class="flex justify-between items-center border-b border-red-800/50 pb-1">
+            <span class="text-xs font-black text-red-300 flex items-center gap-1">🔥 右熱箱</span>
+            <span id="hot-count-badge" class="text-xs bg-red-900 text-red-100 font-mono px-1.5 rounded font-bold">0 瓶</span>
+          </div>
+          <div id="hot-items-container" class="space-y-1 my-auto py-1"></div>
+        </div>
+
+      </div>
+
+      <!-- 下一站預告 -->
+      <div class="bg-gray-900/80 px-3 py-1.5 rounded-xl border border-gray-800 text-xs text-gray-400 flex justify-between items-center">
+        <span class="truncate pr-2">NEXT: <strong id="next-station-text" class="text-gray-200">無</strong></span>
+        <span id="next-station-preview" class="text-amber-300 font-mono shrink-0">--</span>
+      </div>
+
+    </main>
+
+    <!-- 底部操作按鈕 -->
+    <footer class="space-y-2 pt-1 pb-1">
+      <button onclick="confirmComplete()" class="w-full h-20 rounded-2xl bg-emerald-600 active:bg-emerald-700 text-white font-black text-2xl tracking-widest shadow-2xl flex items-center justify-center gap-2">
+        <span>投遞完成 ➔ 下一戶</span>
+      </button>
+      <div class="flex gap-2">
+        <button onclick="undoStation()" class="flex-1 py-2.5 bg-gray-800 active:bg-gray-700 text-gray-300 text-xs font-bold rounded-xl">↩ 復原上一戶</button>
+        <button onclick="skipStation()" class="flex-1 py-2.5 bg-gray-800 active:bg-gray-700 text-amber-400 text-xs font-bold rounded-xl">⏩ 跳過此戶</button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ================= 彈窗 1：裝箱指南 (PACKING GUIDE) ================= -->
+  <div id="modal-packing" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-4 max-w-sm w-full space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <h3 class="font-black text-amber-300">📦 理貨裝箱建議 (49瓶/層)</h3>
+        <button onclick="closePackingModal()" class="text-gray-400 text-xl font-bold">✕</button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="p-2.5 bg-red-950/60 border border-red-800 rounded-xl space-y-1">
+          <div class="font-black text-red-300">【右熱箱 - 下層 (先裝)】</div>
+          <div class="text-gray-300" id="pack-hot-bottom">--</div>
+        </div>
+        <div class="p-2.5 bg-red-950/60 border border-red-800 rounded-xl space-y-1">
+          <div class="font-black text-red-300">【右熱箱 - 上層 (後裝 / 先送)】</div>
+          <div class="text-gray-300" id="pack-hot-top">--</div>
+          <div class="text-amber-400 font-bold mt-1">⚠️ 稀有口味（堅果/草莓）強制置於上層邊角！</div>
+        </div>
+        <div class="p-2.5 bg-cyan-950/60 border border-cyan-800 rounded-xl space-y-1">
+          <div class="font-black text-cyan-300">【左冷箱 (側柱側)】</div>
+          <div class="text-gray-300" id="pack-cold-summary">--</div>
+        </div>
+        <div class="p-2.5 bg-purple-950/60 border border-purple-800 rounded-xl space-y-1">
+          <div class="font-black text-purple-300">【幼兒園獨立袋 (腳踏板/外掛)】</div>
+          <div class="text-gray-300">威士登、小奶爸、正恩、模範生獨立打包</div>
+        </div>
+      </div>
+      <button onclick="closePackingModal()" class="w-full py-2 bg-gray-800 rounded-xl font-bold text-gray-200">關閉</button>
+    </div>
+  </div>
+
+  <!-- ================= 彈窗 2：歷史複查紀錄 (HISTORY LOG) ================= -->
+  <div id="modal-history" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-4 max-w-sm w-full space-y-3">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <h3 class="font-black text-emerald-400">📋 最近完成紀錄 (最近5戶)</h3>
+        <button onclick="closeHistoryModal()" class="text-gray-400 text-xl font-bold">✕</button>
+      </div>
+      <div id="history-list" class="space-y-1.5 text-xs max-h-60 overflow-y-auto">
+        <!-- 動態渲染歷史紀錄 -->
+      </div>
+      <button onclick="closeHistoryModal()" class="w-full py-2 bg-gray-800 rounded-xl font-bold text-gray-200">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzx1OEhkRWnshywurV4ih9cAy6jCNx8nd0IkBiYUno2x6ykmX9waUMC839kzX1ksgPbEw/exec";
+
+    // 瓶蓋視覺色卡字典
+    const CAP_MAP = {
+      '淡': { name: '原味', cap: '銀金屬蓋', bg: 'bg-slate-600', text: 'text-white', border: 'border-slate-400' },
+      '低': { name: '低脂', cap: '紅/桃紅蓋', bg: 'bg-rose-600', text: 'text-white', border: 'border-rose-400' },
+      '卵': { name: '卵磷脂', cap: '橘黃蓋', bg: 'bg-orange-600', text: 'text-white', border: 'border-orange-400' },
+      '麥': { name: '麥芽', cap: '黃/淡橘蓋', bg: 'bg-yellow-500', text: 'text-black', border: 'border-yellow-300' },
+      '巧': { name: '巧克力', cap: '咖啡蓋', bg: 'bg-amber-950', text: 'text-amber-100', border: 'border-amber-700' },
+      '莓': { name: '草莓', cap: '粉紅蓋', bg: 'bg-pink-600', text: 'text-white', border: 'border-pink-400' },
+      '甜': { name: '加糖', cap: '綠色蓋', bg: 'bg-emerald-600', text: 'text-white', border: 'border-emerald-400' },
+      '堅': { name: '堅果', cap: '堅果色蓋', bg: 'bg-amber-800', text: 'text-white', border: 'border-amber-600' },
+      '優': { name: '優酪乳', cap: '優酪專用瓶', bg: 'bg-sky-600', text: 'text-white', border: 'border-sky-400' }
+    };
+
+    // 預載基準名單（保底快取，確保離線與首批載入正常）
+    const BASE_FLAVORS = {
+      "0000": { cold: [{k:'巧',c:1}], hot: [] },
+      "0120": { cold: [{k:'淡',c:1}], hot: [] },
+      "0150": { cold: [{k:'淡',c:1}], hot: [] },
+      "0180": { cold: [], hot: [{k:'淡',c:1}] },
+      "0200": { cold: [], hot: [{k:'淡',c:1}] },
+      "0210": { cold: [], hot: [{k:'巧',c:1}] },
+      "0359": { cold: [{k:'巧',c:1}], hot: [{k:'莓',c:1}] },
+      "0360": { cold: [], hot: [{k:'淡',c:2}] },
+      "0390": { cold: [], hot: [{k:'卵',c:1}] },
+      "0420": { cold: [{k:'低',c:1}], hot: [] },
+      "0430": { cold: [{k:'淡',c:1}], hot: [] },
+      "0480": { cold: [{k:'巧',c:1}], hot: [{k:'莓',c:1}] },
+      "0500": { cold: [{k:'淡',c:2}], hot: [] },
+      "0560": { cold: [], hot: [{k:'淡',c:1}] },
+      "0570": { cold: [{k:'卵',c:2}], hot: [] },
+      "0680": { cold: [{k:'卵',c:1}], hot: [] },
+      "0690": { cold: [], hot: [{k:'淡',c:1}] },
+      "0720": { cold: [], hot: [{k:'巧',c:1},{k:'卵',c:1}] },
+      "0730": { cold: [{k:'麥',c:1}], hot: [] },
+      "0750": { cold: [], hot: [{k:'淡',c:1}] },
+      "0780": { cold: [], hot: [{k:'麥',c:1}] },
+      "0840": { cold: [], hot: [{k:'淡',c:1}] },
+      "0870": { cold: [{k:'巧',c:1}], hot: [] },
+      "0880": { cold: [{k:'淡',c:1}], hot: [] },
+      "0930": { cold: [{k:'麥',c:1}], hot: [] },
+      "0960": { cold: [{k:'巧',c:1}], hot: [] },
+      "1010": { cold: [], hot: [{k:'巧',c:2}] },
+      "1020": { cold: [], hot: [{k:'巧',c:1}] },
+      "1050": { cold: [], hot: [{k:'淡',c:1}] },
+      "1110": { cold: [], hot: [{k:'淡',c:1}] },
+      "1140": { cold: [{k:'巧',c:1}], hot: [] },
+      "1200": { cold: [], hot: [{k:'淡',c:1}] },
+      "1260": { cold: [], hot: [{k:'淡',c:1}] },
+      "1280": { cold: [{k:'優',c:1}], hot: [{k:'卵',c:1}] },
+      "1330": { cold: [{k:'堅',c:1}], hot: [] },
+      "1336": { cold: [], hot: [{k:'淡',c:1}] },
+      "1360": { cold: [{k:'淡',c:1}], hot: [] },
+      "1420": { cold: [], hot: [{k:'莓',c:1},{k:'卵',c:1}] },
+      "1460": { cold: [{k:'優',c:1}], hot: [] },
+      "1500": { cold: [{k:'卵',c:2}], hot: [] },
+      "1530": { cold: [], hot: [{k:'淡',c:1}] },
+      "1560": { cold: [{k:'淡',c:1}], hot: [{k:'麥',c:1}] },
+      "1570": { cold: [], hot: [{k:'巧',c:1}] },
+      "1620": { cold: [], hot: [{k:'淡',c:1}] },
+      "1680": { cold: [], hot: [{k:'淡',c:1}] },
+      "1681": { cold: [], hot: [], isGroup: true, groupName: "威士登幼兒園" },
+      "1682": { cold: [], hot: [], isGroup: true, groupName: "小奶爸幼兒園" },
+      "1710": { cold: [], hot: [{k:'淡',c:1}] },
+      "1800": { cold: [{k:'淡',c:1}], hot: [] },
+      "1810": { cold: [], hot: [{k:'淡',c:1}] },
+      "1840": { cold: [], hot: [{k:'低',c:1}] },
+      "1880": { cold: [], hot: [{k:'淡',c:1}] },
+      "1890": { cold: [], hot: [{k:'卵',c:1}] },
+      "1900": { cold: [{k:'巧',c:1}], hot: [] },
+      "1920": { cold: [], hot: [{k:'淡',c:2}] },
+      "1930": { cold: [], hot: [{k:'卵',c:2}] },
+      "2000": { cold: [{k:'堅',c:1}], hot: [] },
+      "2060": { cold: [], hot: [{k:'淡',c:1}] },
+      "2100": { cold: [], hot: [{k:'巧',c:1}] },
+      "2160": { cold: [{k:'淡',c:1}], hot: [] },
+      "2210": { cold: [], hot: [{k:'巧',c:1}] },
+      "2220": { cold: [], hot: [{k:'巧',c:1}] },
+      "2230": { cold: [{k:'卵',c:1}], hot: [] },
+      "2250": { cold: [], hot: [{k:'淡',c:1}] },
+      "2280": { cold: [], hot: [{k:'卵',c:2}] },
+      "2310": { cold: [], hot: [{k:'巧',c:1}] },
+      "2340": { cold: [], hot: [{k:'卵',c:1}] },
+      "2350": { cold: [], hot: [{k:'淡',c:1}] },
+      "2370": { cold: [], hot: [{k:'淡',c:1}] },
+      "2420": { cold: [{k:'巧',c:1}], hot: [{k:'巧',c:1}] },
+      "2430": { cold: [{k:'優',c:1}], hot: [] },
+      "2450": { cold: [{k:'莓',c:1}], hot: [] },
+      "2490": { cold: [], hot: [{k:'堅',c:1}] },
+      "2520": { cold: [], hot: [{k:'淡',c:2}] },
+      "2650": { cold: [], hot: [{k:'莓',c:1}] },
+      "2670": { cold: [], hot: [{k:'淡',c:1}] },
+      "2700": { cold: [], hot: [{k:'巧',c:1}] },
+      "2760": { cold: [], hot: [{k:'淡',c:2}] },
+      "2790": { cold: [{k:'優',c:1}], hot: [] },
+      "2820": { cold: [], hot: [{k:'淡',c:1}] },
+      "2860": { cold: [{k:'優',c:1}], hot: [{k:'淡',c:1}] },
+      "2880": { cold: [{k:'淡',c:1},{k:'優',c:2}], hot: [{k:'甜',c:1}] },
+      "2910": { cold: [], hot: [{k:'淡',c:1}] },
+      "2930": { cold: [{k:'莓',c:1}], hot: [] },
+      "2970": { cold: [], hot: [{k:'淡',c:1}] },
+      "3000": { cold: [{k:'巧',c:1}], hot: [] },
+      "3060": { cold: [], hot: [{k:'低',c:1}] },
+      "3310": { cold: [], hot: [{k:'淡',c:1}] },
+      "3331": { cold: [], hot: [], isGroup: true, groupName: "百年正恩幼兒園" },
+      "3360": { cold: [], hot: [{k:'巧',c:1}] },
+      "3380": { cold: [], hot: [{k:'淡',c:1}] },
+      "3400": { cold: [{k:'優',c:1}], hot: [{k:'低',c:1}] },
+      "3510": { cold: [{k:'優',c:1}], hot: [{k:'麥',c:2}] },
+      "3600": { cold: [{k:'優',c:1}], hot: [] },
+      "3610": { cold: [], hot: [{k:'淡',c:1}] },
+      "3620": { cold: [{k:'淡',c:1}], hot: [] },
+      "3630": { cold: [], hot: [{k:'淡',c:1}] },
+      "3640": { cold: [{k:'巧',c:1}], hot: [] },
+      "3720": { cold: [{k:'巧',c:1}], hot: [] },
+      "3730": { cold: [], hot: [{k:'淡',c:1}] },
+      "3780": { cold: [], hot: [{k:'淡',c:1}] },
+      "3810": { cold: [], hot: [{k:'麥',c:1}] },
+      "3850": { cold: [{k:'卵',c:1}], hot: [] },
+      "3910": { cold: [], hot: [{k:'麥',c:1}] },
+      "3960": { cold: [{k:'淡',c:1}], hot: [] },
+      "3990": { cold: [], hot: [{k:'低',c:1}] },
+      "4030": { cold: [{k:'堅',c:2}], hot: [] },
+      "4120": { cold: [], hot: [{k:'淡',c:1}] },
+      "4230": { cold: [], hot: [{k:'淡',c:1}] },
+      "4320": { cold: [], hot: [{k:'淡',c:1}] },
+      "4350": { cold: [{k:'優',c:1}], hot: [] },
+      "4380": { cold: [], hot: [{k:'莓',c:1}] },
+      "4440": { cold: [{k:'莓',c:1}], hot: [] },
+      "4450": { cold: [], hot: [{k:'淡',c:1}] },
+      "4460": { cold: [], hot: [{k:'巧',c:1}] },
+      "4470": { cold: [], hot: [{k:'巧',c:1}] },
+      "4560": { cold: [], hot: [{k:'淡',c:1}] },
+      "4590": { cold: [], hot: [{k:'淡',c:1}] },
+      "4595": { cold: [], hot: [], isGroup: true, groupName: "模範生幼兒園" },
+      "4620": { cold: [{k:'巧',c:1}], hot: [] },
+      "4660": { cold: [], hot: [{k:'巧',c:1}] },
+      "4680": { cold: [], hot: [{k:'巧',c:1}] },
+      "4720": { cold: [{k:'巧',c:2}], hot: [] },
+      "4740": { cold: [], hot: [{k:'淡',c:1}] },
+      "4770": { cold: [], hot: [{k:'淡',c:1}] },
+      "4830": { cold: [], hot: [{k:'巧',c:1}] },
+      "4860": { cold: [{k:'低',c:1}], hot: [] },
+      "4950": { cold: [], hot: [{k:'淡',c:2}] },
+      "4956": { cold: [], hot: [{k:'巧',c:1}] },
+      "5000": { cold: [], hot: [{k:'莓',c:3}] },
+      "5010": { cold: [], hot: [{k:'巧',c:1}] },
+      "5020": { cold: [], hot: [{k:'麥',c:1}] }
+    };
+
+    let masterList = [];
+    let activeQueue = [];
+    let currentIndex = 0;
+    let voiceEnabled = true;
+    let deliveryHistory = [];
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    // 1. 初始化資料
+    async function init() {
+      const cached = localStorage.getItem('MASTER_CACHE_DATA');
+      if (cached) {
+        masterList = JSON.parse(cached);
+        renderPrepGrid();
+      }
+      await fetchMasterData();
+    }
+
+    async function fetchMasterData() {
+      try {
+        const res = await fetch(API_URL);
+        const json = await res.json();
+        if (json.status === 'success' && json.data) {
+          masterList = json.data.map(item => {
+            const flavors = BASE_FLAVORS[item.order] || { cold: [], hot: [] };
+            return {
+              ...item,
+              active: true,
+              cold: flavors.cold || [],
+              hot: flavors.hot || [],
+              isGroup: item.isGroup || flavors.isGroup || false,
+              groupName: flavors.groupName || item.community
+            };
+          });
+          localStorage.setItem('MASTER_CACHE_DATA', JSON.stringify(masterList));
+          renderPrepGrid();
+        }
+      } catch (err) {
+        console.warn("使用快取母表載入");
+      }
+    }
+
+    // 2. 渲染速審方塊矩陣
+    function renderPrepGrid() {
+      const container = document.getElementById('grid-container');
+      container.innerHTML = '';
+      let activeCount = 0;
+
+      masterList.forEach((station, idx) => {
+        if (station.active) activeCount++;
+        const btn = document.createElement('button');
+        btn.className = `p-2 rounded-lg font-mono font-bold text-xs border transition ${
+          station.active 
+            ? 'bg-emerald-950 border-emerald-600 text-emerald-300' 
+            : 'bg-gray-900 border-gray-800 text-gray-600 line-through'
+        }`;
+        btn.innerText = `#${station.order}`;
+        btn.onclick = () => {
+          station.active = !station.active;
+          renderPrepGrid();
+        };
+        container.appendChild(btn);
+      });
+
+      document.getElementById('prep-active-count').innerText = `今日預計送: ${activeCount} / ${masterList.length} 戶`;
+    }
+
+    // 一鍵停送昨日已停送名單
+    function autoExcludeKnownInactive() {
+      const inactiveOrders = ["0190", "0990", "1860", "2400", "2530", "3022", "3030", "3330", "3390", "4530", "4710"];
+      masterList.forEach(s => {
+        if (inactiveOrders.includes(s.order)) s.active = false;
+      });
+      renderPrepGrid();
+    }
+
+    // 3. 進入配送狀態
+    function startDelivery() {
+      const keyChecked = document.getElementById('chk-key').checked;
+      if (!keyChecked) {
+        alert("⚠️ 安全防呆阻斷：\n請先確認【威士登幼兒園鑰匙】已在身上口袋，並勾選確認方塊！");
+        return;
+      }
+
+      activeQueue = masterList.filter(s => s.active);
+      if (activeQueue.length === 0) {
+        alert("目前沒有任何勾選要送的站點！");
+        return;
+      }
+
+      currentIndex = 0;
+      deliveryHistory = [];
+      document.getElementById('screen-prep').classList.add('hidden');
+      document.getElementById('screen-delivery').classList.remove('hidden');
+      renderDeliveryCard();
+    }
+
+    function returnToPrep() {
+      document.getElementById('screen-delivery').classList.add('hidden');
+      document.getElementById('screen-prep').classList.remove('hidden');
+    }
+
+    // 4. 渲染核心卡片
+    function renderDeliveryCard() {
+      const station = activeQueue[currentIndex];
+      document.getElementById('delivery-progress').innerText = `${String(currentIndex + 1).padStart(2, '0')} / ${activeQueue.length}`;
+
+      if (!station || currentIndex >= activeQueue.length) {
+        document.getElementById('card-community').innerText = "本日全線配送完成！🎉";
+        document.getElementById('card-address').innerText = "辛苦了，可以收工回站所！";
+        document.getElementById('card-box').innerText = "無待送";
+        document.getElementById('cold-items-container').innerHTML = '';
+        document.getElementById('hot-items-container').innerHTML = '';
+        return;
+      }
+
+      document.getElementById('card-zone').innerText = station.zone;
+      document.getElementById('card-community').innerText = station.community;
+      document.getElementById('card-seq').innerText = `#${station.order}`;
+      document.getElementById('card-address').innerText = station.address;
+      document.getElementById('card-box').innerText = `📦 ${station.boxLocation || '無特定標示'}`;
+
+      // 特殊警告欄位
+      const warnBox = document.getElementById('card-warning-wrap');
+      const warnText = document.getElementById('card-warning-text');
+      if (station.warningNotes) {
+        warnText.innerText = station.warningNotes;
+        warnBox.classList.remove('hidden');
+      } else {
+        warnBox.classList.add('hidden');
+      }
+
+      // 導航 Scheme 直跳
+      const encodedAddr = encodeURIComponent(station.address);
+      document.getElementById('nav-btn').href = isIOS
+        ? `maps://?daddr=${encodedAddr}&dirflg=d`
+        : `https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}&travelmode=driving`;
+
+      // 團戶視圖 vs 一般視圖
+      const groupBanner = document.getElementById('card-group-banner');
+      const capsGrid = document.getElementById('caps-grid');
+      if (station.isGroup) {
+        groupBanner.classList.remove('hidden');
+        capsGrid.classList.add('hidden');
+        document.getElementById('card-group-desc').innerText = `${station.groupName} - 取專屬塑膠袋整袋投入`;
+      } else {
+        groupBanner.classList.add('hidden');
+        capsGrid.classList.remove('hidden');
+        renderCapsSection('cold', station.cold);
+        renderCapsSection('hot', station.hot);
+      }
+
+      // 下一站預告
+      const nextStation = activeQueue[currentIndex + 1];
+      if (nextStation) {
+        document.getElementById('next-station-text').innerText = `${nextStation.community} (${nextStation.address.slice(-6)})`;
+        const hotCount = nextStation.hot.reduce((acc, cur) => acc + cur.c, 0);
+        const coldCount = nextStation.cold.reduce((acc, cur) => acc + cur.c, 0);
+        document.getElementById('next-station-preview').innerText = nextStation.isGroup ? '團戶袋裝' : `熱${hotCount}/冷${coldCount}`;
+      } else {
+        document.getElementById('next-station-text').innerText = "最後一站";
+        document.getElementById('next-station-preview').innerText = "--";
+      }
+
+      speakPrompt(station);
+    }
+
+    function renderCapsSection(type, items) {
+      const container = document.getElementById(`${type}-items-container`);
+      const countBadge = document.getElementById(`${type}-count-badge`);
+      container.innerHTML = '';
+      
+      const totalCount = items.reduce((acc, cur) => acc + cur.c, 0);
+      countBadge.innerText = `${totalCount} 瓶`;
+
+      if (items.length === 0) {
+        container.innerHTML = '<div class="text-xs text-gray-500 italic text-center py-2">無品項</div>';
+        return;
+      }
+
+      items.forEach(item => {
+        const conf = CAP_MAP[item.k] || { name: item.k, cap: '特規', bg: 'bg-gray-700', text: 'text-white', border: 'border-gray-500' };
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between px-2 py-1.5 rounded-lg border ${conf.border} ${conf.bg} ${conf.text} cap-badge`;
+        row.innerHTML = `
+          <div class="flex flex-col">
+            <span class="font-black text-sm tracking-wide leading-tight">${conf.cap}</span>
+            <span class="text-[10px] opacity-80 leading-none">${conf.name}</span>
+          </div>
+          <span class="text-xl font-black font-mono">× ${item.c}</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // 5. 語音引導邏輯
+    function speakPrompt(station) {
+      if (!voiceEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      let text = `${station.community}。`;
+      if (station.isGroup) {
+        text += `團戶整袋送入。${station.warningNotes || ''}`;
+      } else {
+        if (station.hot.length > 0) {
+          text += `右熱：` + station.hot.map(h => `${h.c}瓶${CAP_MAP[h.k]?.cap || h.k}`).join('、') + `。`;
+        }
+        if (station.cold.length > 0) {
+          text += `左冷：` + station.cold.map(c => `${c.c}瓶${CAP_MAP[c.k]?.cap || c.k}`).join('、') + `。`;
+        }
+      }
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'zh-TW';
+      utter.rate = 1.15;
+      window.speechSynthesis.speak(utter);
+    }
+
+    function toggleVoice() {
+      voiceEnabled = !voiceEnabled;
+      document.getElementById('btn-voice').innerText = voiceEnabled ? "🔊 播報: 開" : "🔇 播報: 關";
+    }
+
+    // 6. 配送流程流轉
+    function confirmComplete() {
+      if (navigator.vibrate) navigator.vibrate(60);
+      const current = activeQueue[currentIndex];
+      if (current) {
+        deliveryHistory.unshift({
+          order: current.order,
+          community: current.community,
+          time: new Date().toLocaleTimeString(),
+          isGroup: current.isGroup
+        });
+      }
+
+      if (currentIndex < activeQueue.length - 1) {
+        currentIndex++;
+        renderDeliveryCard();
+      } else {
+        currentIndex++;
+        renderDeliveryCard();
+      }
+    }
+
+    function undoStation() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        deliveryHistory.shift();
+        renderDeliveryCard();
+      }
+    }
+
+    function skipStation() {
+      if (currentIndex < activeQueue.length - 1) {
+        currentIndex++;
+        renderDeliveryCard();
+      }
+    }
+
+    // 7. 彈窗控制
+    function openPackingModal() {
+      // 計算分層概況
+      let hotTotal = 0;
+      let coldTotal = 0;
+      masterList.filter(s => s.active && !s.isGroup).forEach(s => {
+        hotTotal += s.hot.reduce((acc, c) => acc + c.c, 0);
+        coldTotal += s.cold.reduce((acc, c) => acc + c.c, 0);
+      });
+
+      document.getElementById('pack-hot-bottom').innerText = `裝入後半段路線熱奶 (約 ${Math.max(0, hotTotal - 49)} 瓶)`;
+      document.getElementById('pack-hot-top').innerText = `裝入前半段路線熱奶 (約 ${Math.min(49, hotTotal)} 瓶)`;
+      document.getElementById('pack-cold-summary').innerText = `總計約 ${coldTotal} 瓶，整箱集中放置`;
+      document.getElementById('modal-packing').classList.remove('hidden');
+    }
+    function closePackingModal() { document.getElementById('modal-packing').classList.add('hidden'); }
+
+    function openHistoryModal() {
+      const container = document.getElementById('history-list');
+      container.innerHTML = '';
+      if (deliveryHistory.length === 0) {
+        container.innerHTML = '<div class="text-gray-500 text-center py-2">尚無已完成紀錄</div>';
+      } else {
+        deliveryHistory.slice(0, 5).forEach(item => {
+          const row = document.createElement('div');
+          row.className = "flex justify-between items-center p-2 bg-gray-950 rounded border border-gray-800";
+          row.innerHTML = `
+            <div>
+              <span class="font-mono text-amber-400 font-bold">#${item.order}</span>
+              <span class="text-gray-200 ml-1 font-bold">${item.community}</span>
+            </div>
+            <span class="text-gray-400 font-mono text-[10px]">${item.time}</span>
+          `;
+          container.appendChild(row);
+        });
+      }
+      document.getElementById('modal-history').classList.remove('hidden');
+    }
+    function closeHistoryModal() { document.getElementById('modal-history').classList.add('hidden'); }
+
+    // 啟動
+    init();
+  </script>
+</body>
+</html>
