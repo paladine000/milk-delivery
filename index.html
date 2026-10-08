@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>嘉南羊乳配送系統 - 雲端版</title>
+  <title>嘉南羊乳配送系統</title>
   <style>
     :root {
       --bg: #090d16;
@@ -34,7 +34,8 @@
 
     .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .header-title { font-size: 16px; font-weight: 800; color: var(--accent); }
-    .status-badge { font-size: 11px; background: #064e3b; color: #a7f3d0; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+    .status-badge { font-size: 11px; background: #1e293b; color: var(--text-dim); padding: 3px 8px; border-radius: 4px; font-weight: 700; transition: all 0.3s; }
+    .status-badge.ready { background: #064e3b; color: #a7f3d0; }
 
     .step-indicator { display: flex; justify-content: space-between; margin-bottom: 12px; gap: 4px; }
     .step-pill { flex: 1; height: 6px; border-radius: 3px; background: var(--card-border); transition: background 0.3s; }
@@ -67,7 +68,6 @@
     .btn:active { background: var(--accent-active); }
     .btn:disabled { background: #334155; color: var(--text-dim); box-shadow: none; cursor: not-allowed; }
 
-    /* 拍照卡槽 */
     .slot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
     .slot-btn {
       height: 64px;
@@ -104,7 +104,6 @@
     }
     .kg-btn.done { border-style: solid; border-color: var(--purple); background: #312e81; color: #fff; }
 
-    /* 遮罩 */
     .loading-overlay {
       position: fixed;
       inset: 0;
@@ -126,7 +125,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* 對帳與分層 */
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
     .stat-box { background: #1e293b; padding: 8px 4px; border-radius: 8px; text-align: center; }
     .stat-val { font-size: 18px; font-weight: 800; color: var(--highlight); }
@@ -178,7 +176,7 @@
 
   <div class="header-bar">
     <div class="header-title">嘉南羊乳配送系統</div>
-    <div class="status-badge">⚡ 雲端專線就緒</div>
+    <div class="status-badge" id="system-status-badge">🔄 同步雲端母表中...</div>
   </div>
 
   <div class="step-indicator">
@@ -193,8 +191,8 @@
 
   <div class="loading-overlay" id="loading-overlay">
     <div class="loading-spinner"></div>
-    <div id="loading-text" style="font-size:16px; font-weight:700; color:#fff;">⚡ 雲端解析中...</div>
-    <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">跨裝置直通・100% 依據紙本數據</div>
+    <div id="loading-text" style="font-size:16px; font-weight:700; color:#fff;">⚡ 解析與母表對齊中...</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">100% 依據紙本點單・絕無捏造資料</div>
   </div>
 
   <!-- 步驟 1 -->
@@ -221,7 +219,7 @@
       </div>
     </div>
 
-    <button class="btn" onclick="startGASParsing()">⚡ 開始辨識 ➔ 產生今日清單</button>
+    <button class="btn" id="btn-start-parse" onclick="startProcessingFlow()">⚡ 開始核實辨識 ➔ 對齊母表生成路線</button>
   </div>
 
   <!-- 步驟 2 -->
@@ -314,43 +312,12 @@
   </div>
 
   <script>
-    // 永久綁定後端 GAS 端點：任何裝置打開完全免輸入 Key
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPsWzn1lqurp5HadnjoZw/exec";
+    // 已發布的第 5 版 GAS 端點
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPSWzn1lqurp5HadnjoZw/exec";
 
-    // 母表屬性字典（僅地址箱位，不包含任何品項數量）
-    const MOTHER_LOOKUP = {
-      "30514718": { address: "桃園市平鎮區關爺北路8號", memo: "門口" },
-      "30502406": { address: "桃園市平鎮區興埔路169巷39號", memo: "門口信箱" },
-      "30505369": { address: "桃園市平鎮區關爺北路138號", memo: "門口柱子" },
-      "30095395": { address: "桃園市平鎮區關爺西路68號", memo: "門口" },
-      "30413258": { address: "桃園市平鎮區關爺西路38巷20弄20號", memo: "門把" },
-      "30192638": { address: "桃園市平鎮區關爺西路38巷26號", memo: "門口" },
-      "30533860": { address: "桃園市平鎮區關爺西路38巷38弄10號", memo: "小門" },
-      "30544200": { address: "桃園市平鎮區南東路393巷2弄13號", memo: "信箱" },
-      "30527656": { address: "桃園市平鎮區南東路489巷5號", memo: "信箱" },
-      "30538190": { address: "桃園市平鎮區南東路489巷13號", memo: "信箱上" },
-      "30500953": { address: "桃園市平鎮區南東路453巷8號", memo: "信箱" },
-      "30537277": { address: "桃園市平鎮區南東路447號", memo: "限06:00前" },
-      "30542634": { address: "桃園市平鎮區南東路505巷2號", memo: "信箱" },
-      "30507799": { address: "桃園市平鎮區南東路215巷45弄11號", memo: "信箱" },
-      "30542328": { address: "桃園市平鎮區南東路27巷6號4樓", memo: "合適家和-心苑區" },
-      "30542329": { address: "桃園市平鎮區南東路27巷6號7樓", memo: "合適家和-心苑區" },
-      "30464498": { address: "桃園市平鎮區南東路226巷50號", memo: "門牌旁" },
-      "30413276": { address: "桃園市平鎮區南東路104巷100號", memo: "健康別墅" },
-      "30541278": { address: "桃園市平鎮區南華街398巷28弄100號", memo: "日勝新天地07信箱" },
-      "30543922": { address: "桃園市平鎮區南華街398巷28弄106號", memo: "日勝新天地07信箱" },
-      "30518238": { address: "桃園市平鎮區南華街398巷28弄112號", memo: "日勝新天地07信箱" },
-      "30505855": { address: "桃園市平鎮區南華街398巷28弄142號", memo: "日勝新天地07信箱" },
-      "30510551": { address: "桃園市平鎮區南華街398巷28弄43號", memo: "日勝新天地07信箱" },
-      "30542842": { address: "桃園市平鎮區南豐路33號", memo: "左柱子" },
-      "30519581": { address: "桃園市平鎮區中豐路山頂段187號", memo: "【方案A順送】幹道靠右信箱" },
-      "6Q291": { address: "桃園市平鎮區工業東路56號對面", memo: "威士登幼兒園大門", isGroup: true, isWisden: true },
-      "6H555": { address: "桃園市平鎮區工業東路週邊", memo: "小奶爸幼兒園大門", isGroup: true },
-      "5A003": { address: "桃園市龍潭區百年二街15巷23-1號3樓對面", memo: "百年正恩幼兒園大門", isGroup: true },
-      "6H531": { address: "桃園市平鎮區東豐路16巷巷尾", memo: "模範生幼兒園大門", isGroup: true, isLateKg: true },
-      "30216734": { address: "桃園市龍潭區百年二街32號4樓", memo: "5車道門口", bainian: { lane: "5 車道", building: "耶魯 C 棟", floor: "4 樓", elevator: true } },
-      "30481379": { address: "桃園市龍潭區百年二街24號11樓", memo: "門口限06:00前", bainian: { lane: "5 車道", building: "耶魯 A 棟", floor: "11 樓", elevator: true } }
-    };
+    // 全動態母表快取（絕無任何寫死的假資料）
+    let MOTHER_MAP = new Map();
+    let MOTHER_LIST = [];
 
     let capturedImages = {};
     let currentSlotType = null;
@@ -359,6 +326,49 @@
     let currentIndex = 0;
     let currentStopStartTime = null;
     let stopwatchInterval = null;
+
+    /* ============================================================
+       開頁第一時間：動態同步 Google 試算表全部 140+ 筆母表
+       ============================================================ */
+    window.addEventListener('DOMContentLoaded', async () => {
+      const badge = document.getElementById('system-status-badge');
+      try {
+        const res = await fetch(GAS_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+        
+        if (json.status === "success" && Array.isArray(json.data)) {
+          MOTHER_LIST = json.data;
+          MOTHER_MAP.clear();
+
+          json.data.forEach(item => {
+            const id = String(item.customerId || item.id).trim();
+            MOTHER_MAP.set(id, {
+              id: id,
+              order: parseInt(item.order, 10) || 9999,
+              address: item.address || "",
+              memo: item.boxLocation || item.memo || "門口",
+              warning: item.warningNotes || "",
+              community: item.community || "",
+              zone: item.zone || "",
+              isGroup: item.isGroup === true || item.isGroup === "true" || id.startsWith("6") || id.startsWith("5"),
+              isWisden: id === "6Q291",
+              isLateKg: id === "6H531",
+              bainian: item.bainian || null
+            });
+          });
+
+          badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP.size} 戶)`;
+          badge.classList.add('ready');
+        } else {
+          throw new Error("回傳格式非清單陣列");
+        }
+      } catch (err) {
+        badge.textContent = `⚠️ 母表連線異常: ${err.message}`;
+        badge.style.background = "#7f1d1d";
+        badge.style.color = "#fecaca";
+      }
+    });
 
     function triggerCapture(type, id) {
       currentSlotType = type;
@@ -375,15 +385,15 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          // 壓縮至 900px / 0.65，使 Base64 體積降至 ~80KB，秒級進 GAS
-          const targetWidth = 900;
+          // 提升至 1300px / 0.85，保證細原子筆劃與點陣字不失真
+          const targetWidth = 1300;
           const scale = targetWidth / img.width;
           canvas.width = targetWidth;
           canvas.height = img.height * scale;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          const base64 = canvas.toDataURL('image/jpeg', 0.65).split(',')[1];
+          const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
           const slotKey = `${currentSlotType}_${currentSlotId}`;
           capturedImages[slotKey] = base64;
 
@@ -403,9 +413,14 @@
     });
 
     /* ============================================================
-       跨裝置直通 GAS：無金鑰負擔，零推測
+       核心處理流：發送辨識 ➔ 容錯糾錯 ➔ 母表 order 嚴格排序
        ============================================================ */
-    async function startGASParsing() {
+    async function startProcessingFlow() {
+      if (MOTHER_MAP.size === 0) {
+        alert("尚未成功載入雲端母表資料，請確認網路連線或重新整理網頁！");
+        return;
+      }
+
       const keys = Object.keys(capturedImages);
       if (keys.length === 0) {
         alert("請至少拍攝一張照片！");
@@ -415,78 +430,142 @@
       const overlay = document.getElementById('loading-overlay');
       const loadText = document.getElementById('loading-text');
       overlay.style.display = 'flex';
-      loadText.textContent = `⚡ 雲端正在解析中 (共 ${keys.length} 張)...`;
+      loadText.textContent = `⚡ 正在透過第 5 版 GAS 解析 ${keys.length} 張單據...`;
 
       try {
         const requests = keys.map(key => {
-          return fetch(BACKEND_URL, {
+          return fetch(GAS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ image: capturedImages[key] })
           })
           .then(res => res.json())
           .then(resJson => {
-            if (resJson.status !== 'success') {
-              throw new Error(resJson.message || "後端解析失敗");
-            }
-            return resJson.data;
+            if (resJson.status !== 'success') throw new Error(resJson.message || "後端解析失敗");
+            return resJson.data; // 得到 [["30502406", 1, "原:c:1"], ...]
           });
         });
 
-        const resultsArray = await Promise.all(requests);
+        const batchResults = await Promise.all(requests);
         let rawExtractedRows = [];
-        resultsArray.forEach(batch => {
+        batchResults.forEach(batch => {
           if (Array.isArray(batch)) rawExtractedRows = rawExtractedRows.concat(batch);
         });
 
         if (rawExtractedRows.length === 0) {
-          throw new Error("影像未偵測到有效訂戶，請確認拍攝清晰度。");
+          throw new Error("影像未偵測到任何出貨明細，請重新拍攝。");
         }
 
+        // 解析當日真實點單
         const nameMap = { "原": "原味", "麥": "麥芽", "卵": "卵磷脂", "巧": "巧克力", "低": "低脂", "優": "優酪乳" };
-        const parsedCustomers = rawExtractedRows.map(row => {
-          const [id, activeFlag, itemsStr] = row;
+        const parsedDailyList = rawExtractedRows.map(row => {
+          const [rawId, activeFlag, itemsStr] = row;
           const items = (itemsStr || "").split(',').map(str => {
             const parts = str.split(':');
             const nameShort = parts[0];
             const tempFlag = parts[1];
             const cnt = parseInt(parts[2], 10) || 1;
             return {
-              name: nameMap[nameShort] || nameShort || "未標明",
+              name: nameMap[nameShort] || nameShort || "未註記",
               temp: tempFlag === 'c' ? 'cold' : 'hot',
               count: cnt
             };
           });
-          return { id: String(id), active: activeFlag === 1, items: items };
+          return { id: String(rawId).trim(), active: activeFlag === 1, items: items };
         });
 
-        activeQueue = processParsedData(parsedCustomers);
+        // 核心對齊：將當日資料與 140+ 筆母表進行精確結合與容錯對齊
+        activeQueue = reconcileWithMotherTable(parsedDailyList);
         overlay.style.display = 'none';
         goToStep(2);
 
       } catch (err) {
         overlay.style.display = 'none';
-        alert(`❌ 辨識中斷（未生成任何虛構資料）：\n${err.message}\n\n請重新拍攝該張單據後再次送出。`);
+        alert(`❌ 辨識中斷（未生成任何虛構資料）：\n${err.message}\n\n請檢查拍攝清晰度後再次送出。`);
       }
     }
 
-    function processParsedData(rawList) {
-      let combined = rawList.map(c => {
-        const meta = MOTHER_LOOKUP[c.id] || {};
-        return {
-          id: c.id,
-          address: meta.address || `訂戶 ${c.id}`,
-          memo: meta.memo || "門口",
-          items: c.items,
-          active: c.active !== false,
-          isGroup: meta.isGroup || false,
-          isWisden: meta.isWisden || false,
-          isLateKg: meta.isLateKg || false,
-          bainian: meta.bainian || null
-        };
+    /* 
+       容錯糾錯函式：計算兩個字串的編輯距離（Levenshtein Distance）
+    */
+    function getEditDistance(a, b) {
+      if (a.length === 0) return b.length;
+      if (b.length === 0) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    /* 
+       母表真實數據對齊器：
+       1. 編號直接對齊
+       2. 1 碼微瑕疵容錯
+       3. 地址與備註 100% 取自母表
+       4. 排序嚴格按母表 order 昇冪
+    */
+    function reconcileWithMotherTable(dailyList) {
+      let combined = [];
+
+      dailyList.forEach(daily => {
+        let matchedMeta = MOTHER_MAP.get(daily.id);
+
+        // 若無完全吻合，啟動 140 筆母表 1 碼容錯搜尋
+        if (!matchedMeta && daily.id.length >= 5) {
+          for (let [mId, meta] of MOTHER_MAP.entries()) {
+            if (getEditDistance(daily.id, mId) <= 1) {
+              matchedMeta = meta;
+              break;
+            }
+          }
+        }
+
+        if (matchedMeta) {
+          let memoText = matchedMeta.memo;
+          if (matchedMeta.warning) memoText += ` (⚠️${matchedMeta.warning})`;
+
+          combined.push({
+            id: matchedMeta.id,
+            order: matchedMeta.order,
+            address: matchedMeta.address,
+            memo: memoText,
+            items: daily.items, // 嚴格採用當日紙本辨識出來的真實品項
+            active: daily.active,
+            isGroup: matchedMeta.isGroup,
+            isWisden: matchedMeta.isWisden,
+            isLateKg: matchedMeta.isLateKg,
+            bainian: matchedMeta.bainian
+          });
+        } else {
+          // 若真的在 140 筆母表中不存在（全新臨時戶）
+          combined.push({
+            id: daily.id,
+            order: 9999,
+            address: `臨時戶 (編號: ${daily.id})`,
+            memo: "未建檔於母表",
+            items: daily.items,
+            active: daily.active,
+            isGroup: false,
+            isWisden: false,
+            isLateKg: false,
+            bainian: null
+          });
+        }
       });
 
-      // 方案 A 錨定：187 號順接 33 號後方
+      // 嚴格依據母表的 order 由小到大排序（絕對不按拍照順序排）
+      combined.sort((a, b) => a.order - b.order);
+
+      // 方案 A 錨定排序：187 號順接 33 號後方
       const idx187 = combined.findIndex(c => c.id === "30519581");
       const idx33 = combined.findIndex(c => c.id === "30542842");
       if (idx187 !== -1 && idx33 !== -1 && idx187 !== idx33 + 1) {
@@ -529,7 +608,7 @@
 
         div.innerHTML = `
           <div>
-            <div style="font-weight:700;">#${cust.id} ${cust.address} ${cust.isGroup ? '🏫' : ''}</div>
+            <div style="font-weight:700;">[序號 ${cust.order}] #${cust.id} ${cust.address} ${cust.isGroup ? '🏫' : ''}</div>
             <div style="font-size:12px; color:var(--text-dim);">${itemsText} | ${cust.memo}</div>
           </div>
           <span class="toggle-tag ${cust.active ? 'send' : 'pause'}" onclick="toggleCustomer(${idx})">
@@ -669,7 +748,7 @@
 
       document.getElementById('current-address').textContent = stop.address;
       document.getElementById('current-memo').textContent = `📦 ${stop.memo}`;
-      document.getElementById('current-index-label').textContent = `站點 ${currentIndex + 1} / ${activeList.length}`;
+      document.getElementById('current-index-label').textContent = `站點 ${currentIndex + 1} / ${activeList.length} (序號: ${stop.order})`;
 
       const bainianBox = document.getElementById('bainian-special-box');
       if (stop.bainian) {
