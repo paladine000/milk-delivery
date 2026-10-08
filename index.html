@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>嘉南羊乳配送系統 - 個人極限版</title>
+  <title>嘉南羊乳配送系統 - 個人極限版 V2</title>
   <style>
     :root {
       --bg: #090d16;
@@ -17,6 +17,7 @@
       --cold: #06b6d4;
       --warning: #f59e0b;
       --highlight: #facc15;
+      --purple: #818cf8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -32,22 +33,10 @@
     }
 
     /* 頂部進度條 */
-    .step-indicator {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      gap: 4px;
-    }
-    .step-pill {
-      flex: 1;
-      height: 6px;
-      border-radius: 3px;
-      background: var(--card-border);
-      transition: background 0.3s;
-    }
+    .step-indicator { display: flex; justify-content: space-between; margin-bottom: 12px; gap: 4px; }
+    .step-pill { flex: 1; height: 6px; border-radius: 3px; background: var(--card-border); transition: background 0.3s; }
     .step-pill.active { background: var(--accent); }
 
-    /* 通用容器 */
     .wizard-step { display: none; flex-direction: column; flex: 1; }
     .wizard-step.active { display: flex; }
 
@@ -59,9 +48,9 @@
       margin-bottom: 12px;
     }
 
-    h2 { font-size: 20px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    h2 { font-size: 19px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    h3 { font-size: 15px; font-weight: 700; color: var(--text-dim); margin-bottom: 8px; }
 
-    /* 按鈕規格（全域大按鈕） */
     .btn {
       width: 100%;
       height: 60px;
@@ -81,34 +70,49 @@
     }
     .btn:active { background: var(--accent-active); }
     .btn-secondary { background: #334155; box-shadow: none; }
-    .btn-outline { background: transparent; border: 2px dashed var(--card-border); color: var(--text-dim); }
 
-    /* 步驟一：拍照卡槽 */
+    /* 步驟一：A5 雙分區卡槽 */
+    .slot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
     .slot-btn {
-      width: 100%;
-      height: 72px;
+      height: 64px;
       background: #1e293b;
       border: 2px solid var(--card-border);
-      border-radius: 10px;
+      border-radius: 8px;
       color: var(--text-main);
-      font-size: 16px;
-      font-weight: 600;
       display: flex;
+      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      margin-bottom: 10px;
       cursor: pointer;
+      text-align: center;
+      padding: 4px;
     }
     .slot-btn.done { border-color: var(--accent); background: #064e3b; }
-    .slot-badge { font-size: 13px; padding: 4px 8px; border-radius: 6px; background: #334155; }
-    .slot-btn.done .slot-badge { background: var(--accent); color: #fff; }
+    .slot-title { font-size: 13px; font-weight: 700; }
+    .slot-desc { font-size: 11px; color: var(--text-dim); }
+    .slot-btn.done .slot-desc { color: #a7f3d0; font-weight: 700; }
 
-    /* 步驟二：對帳宏觀卡 */
-    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-    .stat-box { background: #1e293b; padding: 10px; border-radius: 8px; text-align: center; }
-    .stat-val { font-size: 22px; font-weight: 800; color: var(--highlight); }
-    .stat-label { font-size: 12px; color: var(--text-dim); }
+    .kg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .kg-btn {
+      height: 58px;
+      background: #1e1b4b;
+      border: 2px dashed #4338ca;
+      border-radius: 8px;
+      color: #c7d2fe;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .kg-btn.done { border-style: solid; border-color: var(--purple); background: #312e81; color: #fff; }
+
+    /* 步驟二：對帳卡 */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+    .stat-box { background: #1e293b; padding: 8px 4px; border-radius: 8px; text-align: center; }
+    .stat-val { font-size: 18px; font-weight: 800; color: var(--highlight); }
+    .stat-label { font-size: 11px; color: var(--text-dim); }
 
     .review-list { max-height: 48vh; overflow-y: auto; margin-bottom: 12px; }
     .review-item {
@@ -120,130 +124,52 @@
       font-size: 14px;
     }
     .review-item.paused { opacity: 0.45; text-decoration: line-through; }
-    .toggle-tag {
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    .toggle-tag { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
     .toggle-tag.send { background: #065f46; color: #a7f3d0; }
     .toggle-tag.pause { background: #7f1d1d; color: #fecaca; }
 
-    /* 步驟三：分層裝箱清單 */
+    /* 步驟三：分層與副箱卡片 */
     .pack-layer { margin-bottom: 12px; border-left: 4px solid var(--card-border); padding-left: 12px; }
-    .pack-layer.bottom { border-left-color: var(--hot); }
-    .pack-layer.top { border-left-color: var(--warning); }
+    .pack-layer.aux-hot { border-left-color: var(--hot); background: rgba(239, 68, 68, 0.08); padding: 10px 12px; border-radius: 0 8px 8px 0; }
+    .pack-layer.aux-cold { border-left-color: var(--cold); background: rgba(6, 182, 212, 0.08); padding: 10px 12px; border-radius: 0 8px 8px 0; }
+    .pack-layer.bottom { border-left-color: var(--warning); }
+    .pack-layer.top { border-left-color: #38bdf8; }
     .pack-layer.cold { border-left-color: var(--cold); }
     .pack-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; display: flex; justify-content: space-between; }
-    .flavor-tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
-    .flavor-tag {
-      background: #1e293b;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 13px;
-      color: var(--text-main);
-    }
+    .flavor-tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .flavor-tag { background: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 13px; color: var(--text-main); }
     .flavor-tag b { color: var(--highlight); }
 
     /* 步驟四：防呆鑰匙卡 */
-    .key-alert-card {
-      border: 2px solid var(--hot);
-      background: rgba(239, 68, 68, 0.15);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      display: none;
-    }
+    .key-alert-card { border: 2px solid var(--hot); background: rgba(239, 68, 68, 0.15); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
     .key-alert-card.active { display: block; }
-    .key-checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    .key-checkbox-label { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 700; cursor: pointer; }
     .key-checkbox { width: 28px; height: 28px; accent-color: var(--hot); }
 
-    /* 步驟五：沉浸式配送視圖 */
+    /* 步驟五：配送視圖 */
     .delivery-district { font-size: 14px; font-weight: 600; color: var(--text-dim); }
-    .delivery-address { font-size: 28px; font-weight: 900; line-height: 1.25; margin: 6px 0 12px 0; color: #ffffff; }
+    .delivery-address { font-size: 27px; font-weight: 900; line-height: 1.25; margin: 6px 0 10px 0; color: #ffffff; }
     .delivery-memo { font-size: 14px; color: var(--warning); background: #372809; padding: 6px 10px; border-radius: 6px; margin-bottom: 12px; }
     
-    .bainian-card {
-      background: #1e1b4b;
-      border: 2px solid #6366f1;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
-      display: none;
-    }
+    .bainian-card { background: #1e1b4b; border: 2px solid #6366f1; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
     .bainian-card.show { display: block; }
     .bainian-main { font-size: 22px; font-weight: 900; color: #a5b4fc; margin-bottom: 4px; }
-    .elevator-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #dc2626;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 800;
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
+    .elevator-badge { display: inline-flex; align-items: center; gap: 4px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
 
-    .delivery-items-box {
-      background: #1e293b;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
-    .delivery-item-row {
-      font-size: 20px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-    .temp-pill {
-      font-size: 13px;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
+    .delivery-items-box { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+    .delivery-item-row { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .temp-pill { font-size: 13px; padding: 2px 6px; border-radius: 4px; }
     .temp-pill.hot { background: var(--hot); color: #fff; }
     .temp-pill.cold { background: var(--cold); color: #fff; }
 
-    /* 80px 巨型完成按鈕 */
-    .btn-finish-stop {
-      height: 80px;
-      font-size: 22px;
-      background: var(--accent);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    }
-    .btn-finish-stop:active { background: var(--accent-active); }
-
-    .tts-controls {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .tts-controls button {
-      flex: 1;
-      height: 48px;
-      background: #1e293b;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: var(--text-main);
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .btn-finish-stop { height: 80px; font-size: 22px; background: var(--accent); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+    .tts-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tts-controls button { flex: 1; height: 48px; background: #1e293b; border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-weight: 600; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- 頂部流程指示條 (5 步) -->
+  <!-- 進度指示條 -->
   <div class="step-indicator">
     <div class="step-pill active" id="pill-1"></div>
     <div class="step-pill" id="pill-2"></div>
@@ -252,35 +178,63 @@
     <div class="step-pill" id="pill-5"></div>
   </div>
 
-  <!-- 隱藏拍照 input (Canvas 壓縮處理) -->
   <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;">
 
-  <!-- ================= 步驟 1：到站建檔 ================= -->
+  <!-- ================= 步驟 1：到站建檔 (A5高解析度模式) ================= -->
   <div class="wizard-step active" id="step-1">
     <div class="card">
-      <h2>📸 步驟 1/5：到站紙本卡槽拍照</h2>
-      <p style="color:var(--text-dim); font-size:13px; margin-bottom:12px;">強制依序拍 3 頁單。Canvas 於本地自動縮圖至 1200px 寬，避免傳輸超時。</p>
+      <h2>📸 步驟 1/5：到站對折拍攝建檔</h2>
       
-      <div class="slot-btn" id="slot-btn-1" onclick="triggerPhoto(1)">
-        <span>1. 拍攝 第 1 頁（南東路／關爺段）</span>
-        <span class="slot-badge" id="slot-badge-1">待拍攝</span>
+      <h3>📄 宅配單（請對折 A4 拍攝 A5 畫面）</h3>
+      <div class="slot-grid">
+        <div class="slot-btn" id="slot-1" onclick="triggerCapture('sheet', 1)">
+          <div class="slot-title">第 1 頁・上半</div>
+          <div class="slot-desc" id="slot-desc-1">待拍攝</div>
+        </div>
+        <div class="slot-btn" id="slot-2" onclick="triggerCapture('sheet', 2)">
+          <div class="slot-title">第 1 頁・下半</div>
+          <div class="slot-desc" id="slot-desc-2">待拍攝</div>
+        </div>
+        <div class="slot-btn" id="slot-3" onclick="triggerCapture('sheet', 3)">
+          <div class="slot-title">第 2 頁・上半</div>
+          <div class="slot-desc" id="slot-desc-3">待拍攝</div>
+        </div>
+        <div class="slot-btn" id="slot-4" onclick="triggerCapture('sheet', 4)">
+          <div class="slot-title">第 2 頁・下半</div>
+          <div class="slot-desc" id="slot-desc-4">待拍攝</div>
+        </div>
+        <div class="slot-btn" id="slot-5" onclick="triggerCapture('sheet', 5)">
+          <div class="slot-title">第 3 頁・上半</div>
+          <div class="slot-desc" id="slot-desc-5">待拍攝</div>
+        </div>
+        <div class="slot-btn" id="slot-6" onclick="triggerCapture('sheet', 6)">
+          <div class="slot-title">第 3 頁・下半</div>
+          <div class="slot-desc" id="slot-desc-6">待拍攝</div>
+        </div>
       </div>
-      <div class="slot-btn" id="slot-btn-2" onclick="triggerPhoto(2)">
-        <span>2. 拍攝 第 2 頁（自由街／百年大鎮）</span>
-        <span class="slot-badge" id="slot-badge-2">待拍攝</span>
-      </div>
-      <div class="slot-btn" id="slot-btn-3" onclick="triggerPhoto(3)">
-        <span>3. 拍攝 第 3 頁（山頂段／終點）</span>
-        <span class="slot-badge" id="slot-badge-3">待拍攝</span>
+
+      <h3>🏫 幼兒園專屬出貨單（有單才拍，無單略過）</h3>
+      <div class="kg-grid">
+        <div class="kg-btn" id="kg-btn-6Q291" onclick="triggerCapture('kg', '6Q291')">
+          <div class="slot-title">威士登 (6Q291)</div>
+          <div class="slot-desc" id="kg-desc-6Q291">＋ 拍單 (選填)</div>
+        </div>
+        <div class="kg-btn" id="kg-btn-6H555" onclick="triggerCapture('kg', '6H555')">
+          <div class="slot-title">小奶爸 (6H555)</div>
+          <div class="slot-desc" id="kg-desc-6H555">＋ 拍單 (選填)</div>
+        </div>
+        <div class="kg-btn" id="kg-btn-5A003" onclick="triggerCapture('kg', '5A003')">
+          <div class="slot-title">百年正恩 (5A003)</div>
+          <div class="slot-desc" id="kg-desc-5A003">＋ 拍單 (選填)</div>
+        </div>
+        <div class="kg-btn" id="kg-btn-6H531" onclick="triggerCapture('kg', '6H531')">
+          <div class="slot-title">模範生 (6H531)</div>
+          <div class="slot-desc" id="kg-desc-6H531">＋ 拍單 (選填)</div>
+        </div>
       </div>
     </div>
 
-    <div class="card" id="memo-alert-card" style="display:none; border-color: var(--warning);">
-      <h2 style="color:var(--warning); font-size:16px;">📢 第 1 頁公告萃取</h2>
-      <div id="memo-alert-content" style="font-size:14px; line-height:1.5;"></div>
-    </div>
-
-    <button class="btn" id="btn-step1-next" onclick="goToStep(2)">✔ 辨識完成 ➔ 前往數據確認</button>
+    <button class="btn" onclick="goToStep(2)">✔ 完成拍攝 ➔ 進入數據核對</button>
   </div>
 
   <!-- ================= 步驟 2：核單審查 ================= -->
@@ -295,45 +249,48 @@
         <div class="stat-box"><div class="stat-val" id="stat-stops">0</div><div class="stat-label">應送戶數</div></div>
       </div>
 
-      <p style="color:var(--text-dim); font-size:12px; margin-bottom:8px;">以 8 碼編號絕對匹配。點擊右側標籤可秒切換【送／停】：</p>
+      <p style="color:var(--text-dim); font-size:12px; margin-bottom:8px;">8 碼/5 碼絕對主鍵對齊。點擊標籤可秒切換【送／停】：</p>
       <div class="review-list" id="review-list-container"></div>
     </div>
 
     <button class="btn" onclick="calculatePackingAndGo()">✔ 確認無誤 ➔ 產生裝箱指南</button>
   </div>
 
-  <!-- ================= 步驟 3：物理裝箱 ================= -->
+  <!-- ================= 步驟 3：物理裝箱指南 ================= -->
   <div class="wizard-step" id="step-3">
     <div class="card">
-      <h2>📦 步驟 3/5：真物理・40 瓶逆推指南</h2>
-      <p style="color:var(--text-dim); font-size:13px; margin-bottom:12px;">
-        雙層熱箱無隔架，依「後進先出」逆推演算法：由最後一站倒推 40 瓶滿鋪底層地基，上層先抽取。
-      </p>
+      <h2>📦 步驟 3/5：真物理裝箱與副箱建議</h2>
+      
+      <!-- 踏板副箱建議（動態出現） -->
+      <div id="aux-box-container"></div>
 
+      <!-- 主右熱箱：下層 -->
       <div class="pack-layer bottom">
         <div class="pack-title">
-          <span style="color:var(--hot)">📥 右熱箱・先裝下層（滿鋪地基）</span>
+          <span style="color:var(--warning)">📥 主右熱箱・先裝下層（後半段地基）</span>
           <span id="pack-bottom-count">0 瓶</span>
         </div>
-        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">後半段路線使用・40 瓶平整地基</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">40 瓶平整散瓶滿鋪地基（模範生袋裝置於角落）</div>
         <div class="flavor-tag-list" id="pack-bottom-flavors"></div>
       </div>
 
+      <!-- 主右熱箱：上層 -->
       <div class="pack-layer top">
         <div class="pack-title">
-          <span style="color:var(--warning)">📤 右熱箱・後裝上層（先抽零數）</span>
+          <span style="color:#38bdf8">📤 主右熱箱・後裝上層（前半段先抽）</span>
           <span id="pack-top-count">0 瓶</span>
         </div>
-        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">前半段路線先送・平放於下層頂部</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">前半段散瓶平放於地基上（威士登/小奶爸未超標袋裝放箱口）</div>
         <div class="flavor-tag-list" id="pack-top-flavors"></div>
       </div>
 
+      <!-- 主左冷箱 -->
       <div class="pack-layer cold">
         <div class="pack-title">
-          <span style="color:var(--cold)">❄️ 左冷箱・獨立側箱</span>
+          <span style="color:var(--cold)">❄️ 主左冷箱・全線集中</span>
           <span id="pack-cold-count">0 瓶</span>
         </div>
-        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">全線冷奶與優酪乳集中擺放</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">散裝冰奶 ＋ 幼兒園冰奶全數集中</div>
         <div class="flavor-tag-list" id="pack-cold-flavors"></div>
       </div>
     </div>
@@ -347,8 +304,8 @@
       <h2>🛡️ 步驟 4/5：行前出車檢查</h2>
 
       <div class="key-alert-card" id="key-alert-box">
-        <div style="color:var(--hot); font-weight:900; font-size:18px; margin-bottom:8px;">⚠️ 鑰匙攜帶確認</div>
-        <div style="font-size:14px; margin-bottom:12px;">今日清單內含【威士登幼兒園】，請確認已取得園所大門鑰匙！</div>
+        <div style="color:var(--hot); font-weight:900; font-size:18px; margin-bottom:8px;">⚠️ 威士登幼兒園鑰匙確認</div>
+        <div style="font-size:14px; margin-bottom:12px;">今日【威士登幼兒園】有單，請確認已攜帶大門鑰匙！</div>
         <label class="key-checkbox-label">
           <input type="checkbox" class="key-checkbox" id="key-confirm-check" onchange="validateKeyCheck()">
           <span>🔑 威士登幼兒園鑰匙已在身上</span>
@@ -356,14 +313,14 @@
       </div>
 
       <div id="key-free-card" class="card" style="background:#064e3b; border-color:var(--accent); display:none;">
-        <div style="font-weight:700; color:#a7f3d0;">🟢 今日威士登幼兒園停送，無需攜帶鑰匙！</div>
-        <div style="font-size:12px; color:#a7f3d0; margin-top:4px;">小奶爸幼兒園一律免鑰匙通行。</div>
+        <div style="font-weight:700; color:#a7f3d0;">🟢 今日威士登幼兒園停送，免帶鑰匙！</div>
+        <div style="font-size:12px; color:#a7f3d0; margin-top:4px;">小奶爸與其他園所一律免鑰匙通行。</div>
       </div>
 
       <div class="card" style="background:#1e293b; margin-top:12px;">
-        <div style="font-size:14px; color:var(--text-dim);">
-          • 路線最佳化（方案 A）：中豐路山頂段 187 號已排入南豐路 33 號正後方順送。<br>
-          • 藍牙耳機請就緒，語音播報速率預設 0.95。
+        <div style="font-size:14px; color:var(--text-dim); line-height:1.5;">
+          • 方案 A 生效：中豐路山頂段 187 號排於南豐路 33 號後。<br>
+          • 藍牙耳機請就緒，語速鎖定 0.95。
         </div>
       </div>
     </div>
@@ -371,9 +328,8 @@
     <button class="btn" id="btn-start-run" onclick="startDelivery()">🚀 確認出車 ➔ 開始導航與計時</button>
   </div>
 
-  <!-- ================= 步驟 5：出發配送 ================= -->
+  <!-- ================= 步驟 5：沉浸式配送 ================= -->
   <div class="wizard-step" id="step-5">
-    <!-- 百年大鎮專用視圖 (自動偵測) -->
     <div class="bainian-card" id="bainian-special-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
         <span style="font-size:13px; font-weight:700; color:#c7d2fe;">🏢 百年大鎮核心路徑導引</span>
@@ -383,32 +339,28 @@
       <div style="font-size:18px; font-weight:800; color:#fff;" id="bainian-floor">4 樓</div>
     </div>
 
-    <!-- 一般地址大字視圖 -->
     <div class="card" style="margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between;">
-        <span class="delivery-district" id="current-district">桃園市平鎮區</span>
+        <span class="delivery-district" id="current-district">平鎮區</span>
         <span style="font-size:13px; color:var(--text-dim);" id="current-index-label">站點 1 / 70</span>
       </div>
       <div class="delivery-address" id="current-address">關爺西路 38 巷 26 號</div>
       <div class="delivery-memo" id="current-memo">📦 箱位：0M 門口</div>
     </div>
 
-    <!-- 投遞品項清單 -->
     <div class="delivery-items-box" id="current-items-box"></div>
 
-    <!-- 輔助操作 -->
     <div class="tts-controls">
       <button onclick="speakCurrentStop()">🔊 重複播報</button>
       <button onclick="openMapsNavigation()">📍 開啟地圖</button>
     </div>
 
-    <!-- 80px 巨型計時投遞按鈕 -->
     <button class="btn btn-finish-stop" id="btn-complete-stop" onclick="completeCurrentStop()">
       ⏱️ 00:00 ➔ 投遞完成
     </button>
   </div>
 
-  <!-- ================= 結束結算畫面 ================= -->
+  <!-- ================= 結算日誌畫面 ================= -->
   <div class="wizard-step" id="step-final">
     <div class="card" style="text-align:center;">
       <h2 style="justify-content:center; color:var(--accent); font-size:24px;">🎉 本日全線配送完畢！</h2>
@@ -416,7 +368,7 @@
         <div style="font-size:14px; color:var(--text-dim);">總耗時</div>
         <div style="font-size:32px; font-weight:900; color:var(--highlight);" id="final-total-time">00:00</div>
       </div>
-      <div class="stat-grid">
+      <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
         <div class="stat-box"><div class="stat-val" id="final-stops-count">0</div><div class="stat-label">完成站點</div></div>
         <div class="stat-box"><div class="stat-val" id="final-avg-time">0 秒</div><div class="stat-label">平均每站耗時</div></div>
       </div>
@@ -428,39 +380,41 @@
 
   <script>
     /* ============================================================
-       0. 10/08 真實路冊基準資料集（採用方案 A：187 號接南豐路 33 號後）
+       0. 基準名單（方案 A 錨定、4 大幼兒園建檔、百年大鎮結構化）
        ============================================================ */
     let deliveryDatabase = [
-      // C1: 關爺熱身段
+      // C1 關爺
       { id: "30502406", district: "平鎮區", address: "興埔路169巷39號", items: [{ name: "原味", temp: "cold", count: 1 }], memo: "門口信箱", cluster: "關爺", active: true },
       { id: "30505369", district: "平鎮區", address: "關爺北路138號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "大門右手邊", cluster: "關爺", active: true },
-      { id: "30514718", district: "平鎮區", address: "關爺北路8號", items: [{ name: "原味", temp: "hot", count: 2 }], memo: "威士登幼兒園門口", cluster: "關爺", isWisden: true, active: false }, // 10/08 空白停送
       { id: "30508821", district: "平鎮區", address: "關爺西路38巷26號", items: [{ name: "卵磷脂", temp: "hot", count: 1 }], memo: "0M 門口", cluster: "關爺", active: true },
       
-      // C2: 南東路深巷段
-      { id: "30516909", district: "平鎮區", address: "麻園街5號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "第1頁退10-08", cluster: "南東", active: false },
-      { id: "30466643", district: "平鎮區", address: "長祥街37號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "第1頁退10-08", cluster: "南東", active: false },
+      // C2 南東路
       { id: "30509932", district: "平鎮區", address: "雅豐街57巷56號", items: [{ name: "卵磷脂", temp: "hot", count: 1 }], memo: "門口", cluster: "南東", active: true },
-      { id: "30511200", district: "平鎮區", address: "南東路447號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "📌 限06:00前送達", cluster: "南東", active: true },
+      { id: "30511200", district: "平鎮區", address: "南東路447號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "📌 限06:00前", cluster: "南東", active: true },
       
-      // C3: 日勝新天地聚落
-      { id: "30513011", district: "平鎮區", address: "南華街398巷28弄100號", items: [{ name: "原味", temp: "hot", count: 1 }, { name: "優酪乳", temp: "cold", count: 1 }], memo: "日勝新天地", cluster: "日勝", active: true },
-      { id: "30513012", district: "平鎮區", address: "南華街398巷28弄106號", items: [{ name: "麥芽", temp: "hot", count: 1 }], memo: "日勝新天地", cluster: "日勝", active: true },
-      
-      // C4: 南豐商住段 + 方案 A 錨點 (山頂段 187 號順接)
+      // C3 南豐商住段 + 方案 A (中豐路山頂段187號接在33號後)
       { id: "30515540", district: "平鎮區", address: "南豐路33號", items: [{ name: "麥芽", temp: "hot", count: 1 }], memo: "大馬路邊", cluster: "南豐", active: true },
-      { id: "30515599", district: "平鎮區", address: "中豐路山頂段187號", items: [{ name: "巧克力", temp: "hot", count: 1 }], memo: "【方案A順接】幹道靠右停靠", cluster: "南豐", active: true },
+      { id: "30519581", district: "平鎮區", address: "中豐路山頂段187號", items: [{ name: "巧克力", temp: "hot", count: 1 }], memo: "【方案A順接】幹道靠右", cluster: "南豐", active: true },
+      
+      // 幼兒園 1 & 2 (34% 位置)
+      { id: "6Q291", district: "平鎮區", address: "工業東路56號對面", items: [{ name: "原味", temp: "hot", count: 14 }, { name: "原味", temp: "cold", count: 3 }], memo: "威士登大門口", cluster: "工業區", isGroup: true, isWisden: true, active: true },
+      { id: "6H555", district: "平鎮區", address: "工業東路週邊", items: [{ name: "原味", temp: "hot", count: 6 }], memo: "小奶爸大門口", cluster: "工業區", isGroup: true, active: true },
+      
       { id: "30516200", district: "平鎮區", address: "自由街120號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "鐵捲門旁", cluster: "自由街", active: true },
 
-      // C5: 百年大鎮專區 (特殊結構視圖)
+      // 百年大鎮段 (含正恩幼兒園 68% 位置)
       { id: "30517001", district: "龍潭區", address: "百年路100號", items: [{ name: "原味", temp: "hot", count: 1 }], memo: "100年大鎮耶魯C⇧5車道", cluster: "百年大鎮", bainian: { lane: "5 車道", building: "耶魯 C 棟", floor: "4 樓", elevator: true }, active: true },
+      { id: "5A003", district: "龍潭區", address: "百年二街15巷23-1號3樓對面", items: [{ name: "原味", temp: "hot", count: 5 }], memo: "百年正恩幼兒園大門", cluster: "百年大鎮", isGroup: true, active: true },
       { id: "30517002", district: "龍潭區", address: "百年2街15號", items: [{ name: "卵磷脂", temp: "hot", count: 1 }], memo: "100年大鎮好萊塢I⇧8車道", cluster: "百年大鎮", bainian: { lane: "8 車道", building: "好萊塢 I 棟", floor: "11 樓", elevator: true }, active: true },
-      { id: "30517003", district: "龍潭區", address: "百年路88號", items: [{ name: "蔓越莓", temp: "cold", count: 2 }], memo: "警衛室轉交", cluster: "百年大鎮", bainian: { lane: "1 車道", building: "劍橋 A 棟", floor: "1 樓", elevator: false }, active: true }
+      
+      // 末端 (90% 位置)：模範生幼兒園
+      { id: "6H531", district: "平鎮區", address: "東豐路16巷巷尾", items: [{ name: "原味", temp: "hot", count: 8 }], memo: "模範生幼兒園大門", cluster: "回程段", isGroup: true, isLateKg: true, active: true }
     ];
 
     let currentStep = 1;
-    let photoStatus = [false, false, false];
-    let packingPlan = { bottom: {}, top: {}, cold: {} };
+    let captureTargetType = null;
+    let captureTargetId = null;
+
     let activeQueue = [];
     let currentIndex = 0;
     let currentStopStartTime = null;
@@ -469,20 +423,19 @@
     let runStartTime = null;
 
     /* ============================================================
-       步驟 1：拍照卡槽與 Canvas 壓縮
+       步驟 1：A5 雙分區快拍與本地 Canvas 壓縮
        ============================================================ */
-    let currentSlot = 1;
-    function triggerPhoto(slotNum) {
-      currentSlot = slotNum;
+    function triggerCapture(type, targetId) {
+      captureTargetType = type;
+      captureTargetId = targetId;
       document.getElementById('camera-input').click();
     }
 
     document.getElementById('camera-input').addEventListener('change', function(e) {
       if (!e.target.files.length) return;
       const file = e.target.files[0];
-      
-      // HTML5 Canvas 本地壓縮至 1200px 寬 (0.2 秒完成，避免 8MB 大圖掛掉)
       const reader = new FileReader();
+      
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
@@ -494,27 +447,24 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          // 壓縮為 JPEG 0.82
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-          markSlotDone(currentSlot);
+          canvas.toDataURL('image/jpeg', 0.85);
+
+          if (captureTargetType === 'sheet') {
+            const btn = document.getElementById(`slot-${captureTargetId}`);
+            const desc = document.getElementById(`slot-desc-${captureTargetId}`);
+            btn.classList.add('done');
+            desc.textContent = "✔ 已壓縮存入";
+          } else if (captureTargetType === 'kg') {
+            const btn = document.getElementById(`kg-btn-${captureTargetId}`);
+            const desc = document.getElementById(`kg-desc-${captureTargetId}`);
+            btn.classList.add('done');
+            desc.textContent = "✔ 已拍單建檔";
+          }
         };
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     });
-
-    function markSlotDone(slot) {
-      photoStatus[slot - 1] = true;
-      const btn = document.getElementById(`slot-btn-${slot}`);
-      const badge = document.getElementById(`slot-badge-${slot}`);
-      btn.classList.add('done');
-      badge.textContent = "✔ 已壓縮辨識";
-
-      if (slot === 1) {
-        document.getElementById('memo-alert-card').style.display = 'block';
-        document.getElementById('memo-alert-content').innerHTML = "• 麻園街5號：標註【退10-08】<br>• 長祥街37號：標註【退10-08】";
-      }
-    }
 
     function goToStep(step) {
       currentStep = step;
@@ -529,16 +479,14 @@
     }
 
     /* ============================================================
-       步驟 2：核單審查與狀態切換
+       步驟 2：核單審查
        ============================================================ */
     function renderStep2Review() {
       const container = document.getElementById('review-list-container');
       container.innerHTML = '';
-
       let totalBottles = 0, hotBottles = 0, coldBottles = 0, activeStops = 0;
 
       deliveryDatabase.forEach((cust, idx) => {
-        const itemSum = cust.items.reduce((s, i) => s + i.count, 0);
         if (cust.active) {
           activeStops++;
           cust.items.forEach(i => {
@@ -550,12 +498,11 @@
 
         const div = document.createElement('div');
         div.className = `review-item ${cust.active ? '' : 'paused'}`;
-        
         const itemsText = cust.items.map(i => `${i.temp === 'hot' ? '🔥' : '❄️'}${i.name}x${i.count}`).join(' ');
 
         div.innerHTML = `
           <div>
-            <div style="font-weight:700;">#${cust.id} ${cust.address}</div>
+            <div style="font-weight:700;">#${cust.id} ${cust.address} ${cust.isGroup ? '🏫[團購]' : ''}</div>
             <div style="font-size:12px; color:var(--text-dim);">${itemsText} | ${cust.memo}</div>
           </div>
           <span class="toggle-tag ${cust.active ? 'send' : 'pause'}" onclick="toggleCustomer(${idx})">
@@ -577,54 +524,91 @@
     }
 
     /* ============================================================
-       步驟 3：真物理裝箱演算法（40 瓶逆推地基）
+       步驟 3：真物理裝箱演算法 (單溫層 >= 12 瓶副箱隔離 + 40 瓶地基)
        ============================================================ */
     function calculatePackingAndGo() {
       activeQueue = deliveryDatabase.filter(c => c.active);
 
-      // 提取全部熱奶站點與明細
-      let hotStops = [];
-      activeQueue.forEach((stop, stopIdx) => {
-        stop.items.filter(i => i.temp === 'hot').forEach(item => {
-          for (let k = 0; k < item.count; k++) {
-            hotStops.push({ stopIdx, name: item.name });
-          }
+      let auxHotBagList = [];
+      let auxColdBagList = [];
+      let mainHotBottles = [];
+      let mainColdFlavors = {};
+
+      activeQueue.forEach((cust) => {
+        let kgHot = 0, kgCold = 0;
+        cust.items.forEach(i => {
+          if (i.temp === 'hot') kgHot += i.count;
+          else kgCold += i.count;
         });
+
+        // 規則：單一溫層 >= 12 瓶觸發副箱（不能混裝）
+        if (cust.isGroup && kgHot >= 12) {
+          auxHotBagList.push({ cust, items: cust.items.filter(i => i.temp === 'hot') });
+          // 冷瓶若不足 12 瓶則回流主冷箱
+          cust.items.filter(i => i.temp === 'cold').forEach(i => mainColdFlavors[i.name] = (mainColdFlavors[i.name] || 0) + i.count);
+        } else if (cust.isGroup && kgCold >= 12) {
+          auxColdBagList.push({ cust, items: cust.items.filter(i => i.temp === 'cold') });
+          // 熱瓶回流主熱箱
+          cust.items.filter(i => i.temp === 'hot').forEach(i => {
+            for (let k = 0; k < i.count; k++) mainHotBottles.push({ cust, name: i.name });
+          });
+        } else {
+          // 一般戶或未滿 12 瓶幼兒園：依常規進主箱
+          cust.items.forEach(i => {
+            if (i.temp === 'hot') {
+              for (let k = 0; k < i.count; k++) mainHotBottles.push({ cust, name: i.name, isLateKg: cust.isLateKg });
+            } else {
+              mainColdFlavors[i.name] = (mainColdFlavors[i.name] || 0) + i.count;
+            }
+          });
+        }
       });
 
-      const totalHot = hotStops.length;
-      packingPlan = { bottom: {}, top: {}, cold: {} };
+      // 副箱 UI 渲染
+      const auxBoxContainer = document.getElementById('aux-box-container');
+      auxBoxContainer.innerHTML = '';
 
-      // 40 瓶基準線逆推
-      if (totalHot <= 40) {
-        hotStops.forEach(b => packingPlan.bottom[b.name] = (packingPlan.bottom[b.name] || 0) + 1);
-      } else {
-        const bottomBottles = hotStops.slice(totalHot - 40); // 倒數 40 瓶（底層地基）
-        const topBottles = hotStops.slice(0, totalHot - 40);   // 前半段先抽瓶數
-
-        bottomBottles.forEach(b => packingPlan.bottom[b.name] = (packingPlan.bottom[b.name] || 0) + 1);
-        topBottles.forEach(b => packingPlan.top[b.name] = (packingPlan.top[b.name] || 0) + 1);
+      if (auxHotBagList.length > 0) {
+        auxHotBagList.forEach(pack => {
+          const totalCount = pack.items.reduce((s, i) => s + i.count, 0);
+          const div = document.createElement('div');
+          div.className = 'pack-layer aux-hot';
+          div.innerHTML = `
+            <div class="pack-title">
+              <span style="color:var(--hot)">🎒【前踏板熱副箱】${pack.cust.address}（${totalCount} 瓶）</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-dim); margin-bottom:4px;">單溫層 ≥ 12 瓶強制獨立包裝，車停手提即走</div>
+            <div class="flavor-tag-list">${pack.items.map(i => `<span class="flavor-tag">${i.name}: <b>${i.count}</b></span>`).join('')}</div>
+          `;
+          auxBoxContainer.appendChild(div);
+        });
       }
 
-      // 冷奶全部聚合
-      activeQueue.forEach(stop => {
-        stop.items.filter(i => i.temp === 'cold').forEach(item => {
-          packingPlan.cold[item.name] = (packingPlan.cold[item.name] || 0) + item.count;
-        });
-      });
+      // 主熱箱分層（40 瓶地基逆推）
+      const totalMainHot = mainHotBottles.length;
+      let bottomFlavors = {}, topFlavors = {};
+      let bottomCount = 0, topCount = 0;
 
-      // 渲染步驟三畫面
-      renderFlavorList('pack-bottom-flavors', packingPlan.bottom);
-      renderFlavorList('pack-top-flavors', packingPlan.top);
-      renderFlavorList('pack-cold-flavors', packingPlan.cold);
+      if (totalMainHot <= 40) {
+        mainHotBottles.forEach(b => bottomFlavors[b.name] = (bottomFlavors[b.name] || 0) + 1);
+        bottomCount = totalMainHot;
+      } else {
+        const bottomSlice = mainHotBottles.slice(totalMainHot - 40);
+        const topSlice = mainHotBottles.slice(0, totalMainHot - 40);
 
-      const bottomCount = Object.values(packingPlan.bottom).reduce((a, b) => a + b, 0);
-      const topCount = Object.values(packingPlan.top).reduce((a, b) => a + b, 0);
-      const coldCount = Object.values(packingPlan.cold).reduce((a, b) => a + b, 0);
+        bottomSlice.forEach(b => bottomFlavors[b.name] = (bottomFlavors[b.name] || 0) + 1);
+        topSlice.forEach(b => topFlavors[b.name] = (topFlavors[b.name] || 0) + 1);
+        bottomCount = bottomSlice.length;
+        topCount = topSlice.length;
+      }
+
+      renderFlavorList('pack-bottom-flavors', bottomFlavors);
+      renderFlavorList('pack-top-flavors', topFlavors);
+      renderFlavorList('pack-cold-flavors', mainColdFlavors);
 
       document.getElementById('pack-bottom-count').textContent = `${bottomCount} 瓶`;
       document.getElementById('pack-top-count').textContent = `${topCount} 瓶`;
-      document.getElementById('pack-cold-count').textContent = `${coldCount} 瓶`;
+      document.getElementById('pack-cold-count').textContent = `${Object.values(mainColdFlavors).reduce((a, b) => a + b, 0)} 瓶`;
 
       goToStep(3);
     }
@@ -645,7 +629,7 @@
     }
 
     /* ============================================================
-       步驟 4：行前防呆（僅威士登需鑰匙）
+       步驟 4：防呆檢查（僅威士登需鑰匙）
        ============================================================ */
     function checkKeyAndGo() {
       const isWisdenActive = activeQueue.some(c => c.isWisden);
@@ -664,7 +648,6 @@
         startBtn.disabled = false;
         startBtn.style.opacity = '1';
       }
-
       goToStep(4);
     }
 
@@ -676,7 +659,7 @@
     }
 
     /* ============================================================
-       步驟 5：沉浸式配送與自然語音播報
+       步驟 5：沉浸式配送與語音播報
        ============================================================ */
     function startDelivery() {
       runStartTime = new Date();
@@ -695,7 +678,6 @@
       const stop = activeQueue[currentIndex];
       currentStopStartTime = new Date();
 
-      // 計時碼表重設
       clearInterval(stopwatchInterval);
       stopwatchInterval = setInterval(() => {
         const sec = Math.floor((new Date() - currentStopStartTime) / 1000);
@@ -704,13 +686,11 @@
         document.getElementById('btn-complete-stop').innerHTML = `⏱️ ${m}:${s} ➔ 投遞完成`;
       }, 1000);
 
-      // 地址與視圖渲染
       document.getElementById('current-district').textContent = stop.district;
       document.getElementById('current-address').textContent = stop.address;
       document.getElementById('current-memo').textContent = `📦 ${stop.memo}`;
       document.getElementById('current-index-label').textContent = `站點 ${currentIndex + 1} / ${activeQueue.length}`;
 
-      // 百年大鎮專用視圖切換
       const bainianBox = document.getElementById('bainian-special-box');
       if (stop.bainian) {
         bainianBox.classList.add('show');
@@ -721,7 +701,6 @@
         bainianBox.classList.remove('show');
       }
 
-      // 品項標籤渲染
       const itemsBox = document.getElementById('current-items-box');
       itemsBox.innerHTML = '';
       stop.items.forEach(i => {
@@ -734,11 +713,9 @@
         itemsBox.appendChild(row);
       });
 
-      // 自動播報
       speakCurrentStop();
     }
 
-    /* 自然語音生成 (SpeechSynthesis) */
     function speakCurrentStop() {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
@@ -746,7 +723,6 @@
       const stop = activeQueue[currentIndex];
       let text = "";
 
-      // 句型構建
       if (stop.bainian) {
         text = `百年大鎮 ${stop.bainian.lane} ${stop.bainian.building} ${stop.bainian.floor}。`;
       } else {
@@ -764,7 +740,7 @@
 
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'zh-TW';
-      utter.rate = 0.95; // 穩定清晰語速
+      utter.rate = 0.95;
       window.speechSynthesis.speak(utter);
     }
 
@@ -775,25 +751,15 @@
     }
 
     function completeCurrentStop() {
-      // 觸動震動回饋
       if (navigator.vibrate) navigator.vibrate(50);
-
       const elapsedSec = Math.floor((new Date() - currentStopStartTime) / 1000);
       const stop = activeQueue[currentIndex];
 
-      stopLogs.push({
-        stop: currentIndex + 1,
-        address: stop.address,
-        seconds: elapsedSec
-      });
-
+      stopLogs.push({ stop: currentIndex + 1, address: stop.address, seconds: elapsedSec });
       currentIndex++;
       renderCurrentDeliveryStop();
     }
 
-    /* ============================================================
-       結束閉環結算
-       ============================================================ */
     function finishAllDeliveries() {
       clearInterval(stopwatchInterval);
       window.speechSynthesis.cancel();
@@ -801,7 +767,6 @@
       const totalSec = Math.floor((new Date() - runStartTime) / 1000);
       const m = Math.floor(totalSec / 60);
       const s = totalSec % 60;
-      
       const avgSec = stopLogs.length ? Math.floor(totalSec / stopLogs.length) : 0;
 
       document.getElementById('final-total-time').textContent = `${m} 分 ${s} 秒`;
