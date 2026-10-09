@@ -34,7 +34,7 @@
 
     .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .header-title { font-size: 16px; font-weight: 800; color: var(--accent); }
-    .status-badge { font-size: 11px; background: #1e293b; color: var(--text-dim); padding: 4px 8px; border-radius: 4px; font-weight: 700; transition: all 0.3s; }
+    .status-badge { font-size: 11px; background: #1e293b; color: var(--text-dim); padding: 3px 8px; border-radius: 4px; font-weight: 700; transition: all 0.3s; }
     .status-badge.ready { background: #064e3b; color: #a7f3d0; }
 
     .step-indicator { display: flex; justify-content: space-between; margin-bottom: 12px; gap: 4px; }
@@ -125,23 +125,21 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Data Gate 工作台樣式 */
-    .gate-filter-bar { display: flex; gap: 6px; margin-bottom: 10px; }
+    /* Data Gate 過濾器與對帳列 */
+    .filter-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
     .filter-tab {
       flex: 1;
-      height: 40px;
+      padding: 8px 4px;
       background: #1e293b;
       border: 1px solid var(--card-border);
       border-radius: 8px;
       color: var(--text-dim);
-      font-size: 13px;
       font-weight: 800;
+      font-size: 13px;
+      text-align: center;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-    .filter-tab.active { background: #334155; color: #fff; border-color: var(--accent); }
+    .filter-tab.active { background: #334155; color: #ffffff; border-color: var(--accent); }
 
     .gate-target-bar {
       display: flex;
@@ -153,13 +151,13 @@
       margin-bottom: 10px;
       border: 1px solid var(--card-border);
     }
-    .gate-target-badge { font-weight: 900; font-size: 14px; padding: 3px 8px; border-radius: 6px; }
+    .gate-target-badge { font-weight: 900; font-size: 14px; padding: 4px 8px; border-radius: 6px; }
     .gate-match { background: #065f46; color: #a7f3d0; }
     .gate-mismatch { background: #7f1d1d; color: #fecaca; }
 
-    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
-    .stat-box { background: #1e293b; padding: 8px 4px; border-radius: 8px; text-align: center; }
-    .stat-val { font-size: 18px; font-weight: 800; color: var(--highlight); }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+    .stat-box { background: #1e293b; padding: 6px 2px; border-radius: 8px; text-align: center; }
+    .stat-val { font-size: 17px; font-weight: 800; color: var(--highlight); }
     .stat-label { font-size: 11px; color: var(--text-dim); }
 
     .review-list { max-height: 46vh; overflow-y: auto; margin-bottom: 10px; }
@@ -170,30 +168,54 @@
       padding: 10px;
       margin-bottom: 8px;
     }
-    .review-card.paused { opacity: 0.45; }
-    .review-card.noise { border-color: var(--warning); background: #261b07; }
+    .review-card.noise { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
     .review-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-
-    .item-chip {
+    
+    .item-capsule {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: #1f2937;
-      padding: 4px 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 3px 6px;
       border-radius: 6px;
-      margin: 2px;
+      margin: 2px 4px 2px 0;
       font-size: 13px;
     }
-    .chip-btn {
+    .capsule-btn {
       background: #374151;
       border: none;
       color: #fff;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 4px;
       font-weight: 900;
       cursor: pointer;
     }
+    .capsule-btn:active { background: #4b5563; }
+    .add-flavor-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      background: #0f766e;
+      border: none;
+      color: #ccfbf1;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    /* 現場視圖樣式 */
+    .district-text { font-size: 12px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; }
+    .street-giant { font-size: 28px; font-weight: 900; line-height: 1.25; margin: 4px 0 6px 0; color: #ffffff; cursor: pointer; }
+    .street-hint { font-size: 11px; color: #38bdf8; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+    .delivery-memo { font-size: 14px; color: var(--warning); background: #372809; padding: 6px 10px; border-radius: 6px; margin-bottom: 12px; }
+
+    .bainian-card { background: #1e1b4b; border: 2px solid #6366f1; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: none; }
+    .bainian-card.show { display: block; }
+    .bainian-main { font-size: 22px; font-weight: 900; color: #a5b4fc; }
 
     .pack-layer { margin-bottom: 10px; border-left: 4px solid var(--card-border); padding-left: 10px; }
     .pack-layer.aux-hot { border-left-color: var(--hot); background: rgba(239, 68, 68, 0.08); padding: 8px 10px; border-radius: 0 8px 8px 0; }
@@ -204,20 +226,8 @@
     .flavor-tag { background: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--text-main); }
     .flavor-tag b { color: var(--highlight); }
 
-    .key-alert-card { border: 2px solid var(--hot); background: rgba(239, 68, 68, 0.15); border-radius: 12px; padding: 14px; margin-bottom: 12px; display: none; }
-    .key-alert-card.active { display: block; }
-
     .checklist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; font-weight: 700; }
     .checklist-input { width: 100%; padding: 10px; background: #1e293b; border: 1px solid var(--card-border); border-radius: 8px; color: #fff; font-size: 16px; }
-
-    /* 現場視圖樣式 */
-    .district-text { font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; }
-    .street-giant { font-size: 28px; font-weight: 900; line-height: 1.25; color: #ffffff; cursor: pointer; margin: 4px 0; }
-    .street-hint { font-size: 11px; color: #38bdf8; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; }
-
-    .bainian-card { background: #1e1b4b; border: 2px solid #6366f1; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: none; }
-    .bainian-card.show { display: block; }
-    .bainian-main { font-size: 22px; font-weight: 900; color: #a5b4fc; }
   </style>
 </head>
 <body>
@@ -239,16 +249,16 @@
 
   <div class="loading-overlay" id="loading-overlay">
     <div class="loading-spinner"></div>
-    <div id="loading-text" style="font-size:16px; font-weight:700; color:#fff;">⚡ 2048px 解析與多重錨定對齊中...</div>
-    <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">嚴格依據紙本點單・絕無捏造假資料</div>
+    <div id="loading-text" style="font-size:16px; font-weight:700; color:#fff;">⚡ 解析與母表對齊中...</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">100% 依據紙本點單・雙重硬指標錨定</div>
   </div>
 
-  <!-- 步驟 1：A5 與幼兒園拍照建檔 -->
+  <!-- 步驟 1：拍照建檔（2048px 高清取樣） -->
   <div class="wizard-step active" id="step-1">
     <div class="card">
-      <h2>📸 步驟 1/5：2048px 高清拍照建檔</h2>
+      <h2>📸 步驟 1/5：A5 高清拍攝建檔</h2>
       
-      <h3>📄 宅配單（對折拍攝 A5，至少拍第 1 頁上/下）</h3>
+      <h3>📄 宅配單（以 2048px 採樣保留點陣字與星號）</h3>
       <div class="slot-grid">
         <div class="slot-btn" id="slot-1" onclick="triggerCapture('sheet', 1)"><div class="slot-title">第 1 頁・上半</div><div class="slot-desc" id="slot-desc-1">待拍攝</div></div>
         <div class="slot-btn" id="slot-2" onclick="triggerCapture('sheet', 2)"><div class="slot-title">第 1 頁・下半</div><div class="slot-desc" id="slot-desc-2">待拍攝</div></div>
@@ -267,25 +277,25 @@
       </div>
     </div>
 
-    <button class="btn" onclick="startProcessingFlow()">⚡ 開始高清辨識 ➔ 進入數據檢查站</button>
+    <button class="btn" onclick="startProcessingFlow()">⚡ 開始核實辨識 ➔ 進入數據檢查站</button>
   </div>
 
   <!-- 步驟 2：Data Gate 資料檢查站 -->
   <div class="wizard-step" id="step-2">
     <div class="card">
       <h2>📊 步驟 2/5：Data Gate 資料檢查站</h2>
-
-      <!-- 過濾切換器 -->
-      <div class="gate-filter-bar">
-        <div class="filter-tab active" id="tab-active" onclick="switchGateTab('active')">📦 配送清單</div>
-        <div class="filter-tab" id="tab-paused" onclick="switchGateTab('paused')">🚫 停送清單</div>
-        <div class="filter-tab" id="tab-noise" onclick="switchGateTab('noise')">⚠️ 待核對雜訊</div>
-      </div>
       
+      <!-- 過濾切換器 -->
+      <div class="filter-tabs">
+        <div class="filter-tab active" id="tab-active" onclick="switchFilter('active')">📦 配送清單</div>
+        <div class="filter-tab" id="tab-paused" onclick="switchFilter('paused')">🚫 停送清單</div>
+        <div class="filter-tab" id="tab-noise" onclick="switchFilter('noise')">⚠️ 雜訊/未配對</div>
+      </div>
+
       <!-- 總瓶數對帳條 -->
       <div class="gate-target-bar">
         <div>
-          <span style="font-size:12px; color:var(--text-dim); display:block;">紙本應送對帳目標</span>
+          <span style="font-size:11px; color:var(--text-dim); display:block;">紙本應送對帳目標</span>
           <input type="number" id="input-target-bottles" value="100" style="width:64px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:4px; font-weight:800; font-size:14px; padding:2px 4px;" onchange="updateBottleStats()"> 瓶
         </div>
         <div class="gate-target-badge" id="gate-target-status">核對中</div>
@@ -298,21 +308,21 @@
         <div class="stat-box"><div class="stat-val" id="stat-stops">0</div><div class="stat-label">應送戶</div></div>
       </div>
 
-      <!-- 快速補單輸入欄 -->
+      <!-- 快速補單輸入列 -->
       <div style="display:flex; gap:6px; margin-bottom:8px;">
-        <input type="text" id="input-quick-add" placeholder="輸入客戶ID(如 30514718) 或序號(如 0160)" style="flex:1; padding:8px; background:#1e293b; border:1px solid var(--card-border); border-radius:6px; color:#fff; font-size:13px;">
+        <input type="text" id="input-quick-add" placeholder="輸入 8 碼客戶編號快速補單 (如 30514718)" style="flex:1; padding:8px; background:#1e293b; border:1px solid var(--card-border); border-radius:6px; color:#fff; font-size:13px;">
         <button onclick="quickAddCustomer()" style="padding:0 12px; background:var(--accent); border:none; border-radius:6px; color:#fff; font-weight:700; cursor:pointer;">＋ 補單</button>
       </div>
 
       <div class="review-list" id="review-list-container"></div>
     </div>
-    <button class="btn" onclick="calculatePackingAndGo()">✔ 數據 100% 確認鎖定 ➔ 產生裝箱指南</button>
+    <button class="btn" onclick="calculatePackingAndGo()">✔ 鎖定資料 ➔ 產生正確裝箱指南</button>
   </div>
 
-  <!-- 步驟 3：真物理裝箱指南 -->
+  <!-- 步驟 3：真物理裝箱配置（完整保留踏板副箱） -->
   <div class="wizard-step" id="step-3">
     <div class="card">
-      <h2>📦 步驟 3/5：真物理裝箱與副箱建議</h2>
+      <h2>📦 步驟 3/5：真物理裝箱與副箱配置</h2>
       <div id="aux-box-container"></div>
       <div class="pack-layer bottom">
         <div class="pack-title" style="display:flex; justify-content:space-between; font-weight:800; margin-bottom:4px;">
@@ -335,17 +345,17 @@
         <div class="flavor-tag-list" id="pack-cold-flavors"></div>
       </div>
     </div>
-    <button class="btn" onclick="checkKeyAndGo()">✔ 裝箱完畢 ➔ 行前安全與里程檢核</button>
+    <button class="btn" onclick="goToStep(4)">✔ 裝箱完畢 ➔ 行前安全與里程檢核</button>
   </div>
 
-  <!-- 步驟 4：出車檢核（威士登鑰匙 + 里程 + 冰塊） -->
+  <!-- 步驟 4：出車檢核（里程數 + 冰塊 + 威士登鑰匙） -->
   <div class="wizard-step" id="step-4">
     <div class="card">
       <h2>🛡️ 步驟 4/5：行前出車檢核</h2>
       
       <div class="checklist-row">
         <span style="min-width:110px;">🛵 出發里程數:</span>
-        <input type="number" step="0.1" id="input-start-odometer" class="checklist-input" placeholder="輸入機車儀表里程 (km)">
+        <input type="number" step="0.1" id="input-start-odometer" class="checklist-input" placeholder="輸入儀表里程 (km)">
       </div>
 
       <label class="checklist-row" style="cursor:pointer; background:#1e293b; padding:10px; border-radius:8px;">
@@ -353,23 +363,21 @@
         <span>🧊 防災保冷確認：冰箱／保冷袋已放入冰塊</span>
       </label>
 
-      <div class="key-alert-card" id="key-alert-box">
-        <div style="color:var(--hot); font-weight:900; font-size:17px; margin-bottom:6px;">⚠️ 威士登幼兒園鑰匙確認</div>
-        <div style="font-size:13px; margin-bottom:10px;">今日威士登幼兒園有排送，請確認大門鑰匙！</div>
-        <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:#fff; cursor:pointer;">
-          <input type="checkbox" id="check-wisden-key" style="width:22px; height:22px; accent-color:var(--hot);">
-          <span>🔑 威士登鑰匙已在身上</span>
+      <div id="key-alert-box" style="display:none; background:rgba(239, 68, 68, 0.15); border:1px solid var(--hot); border-radius:8px; padding:10px; margin-top:8px;">
+        <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:var(--hot); cursor:pointer;">
+          <input type="checkbox" id="check-wisden-key" style="width:20px; height:20px; accent-color:var(--hot);">
+          <span>🔑 威士登幼兒園鑰匙已在身上</span>
         </label>
       </div>
 
-      <div id="key-free-card" class="card" style="background:#064e3b; border-color:var(--accent); display:none; padding:10px;">
+      <div id="key-free-card" class="card" style="background:#064e3b; border-color:var(--accent); display:none; padding:10px; margin-top:8px;">
         <div style="font-weight:700; color:#a7f3d0; font-size:13px;">🟢 今日威士登幼兒園停送，免帶鑰匙！</div>
       </div>
     </div>
-    <button class="btn" onclick="startDelivery()">🚀 鎖定紀錄 ➔ 開始配送導航</button>
+    <button class="btn" onclick="validateStartTrip()">🚀 鎖定紀錄 ➔ 開始配送導航</button>
   </div>
 
-  <!-- 步驟 5：配送現場視圖 -->
+  <!-- 步驟 5：配送現場聚合視圖（巨字、原生導航、特徵語音） -->
   <div class="wizard-step" id="step-5">
     <div class="bainian-card" id="bainian-special-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -390,11 +398,10 @@
       <div class="street-giant" id="current-address" onclick="openCurrentStopNavigation()">載入中...</div>
       <div class="street-hint">👆 點擊門牌直通導航 (iOS開Apple Maps / 其他開Google Maps)</div>
       
-      <div id="current-memo-box" style="font-size:13px; color:var(--warning); background:#372809; padding:6px 10px; border-radius:6px; margin-top:8px;">
-        📦 箱位備註
-      </div>
+      <div id="current-memo-box" class="delivery-memo">📦 箱位備註</div>
     </div>
 
+    <!-- 本站所有配送品項（支援同地點多樓層整合展示） -->
     <div class="card" id="current-orders-container" style="padding:10px; margin-bottom:12px;"></div>
 
     <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -409,7 +416,7 @@
   </div>
 
   <script>
-    const GAS_URL = "[https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPsWzn1lqurp5HadnjoZw/exec](https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPsWzn1lqurp5HadnjoZw/exec)";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPsWzn1lqurp5HadnjoZw/exec";
 
     const CAP_MAP = {
       '原味': '銀色瓶蓋',
@@ -424,18 +431,18 @@
       '大瓶936cc': '大瓶蓋'
     };
 
-    let MOTHER_MAP = new Map();       // Key: ID
-    let MOTHER_ORDER_MAP = new Map(); // Key: 序號 (如 "0160" 或 "160")
+    let MOTHER_MAP_BY_ID = new Map();
+    let MOTHER_MAP_BY_ORDER = new Map();
     let MOTHER_LIST = [];
     
     let capturedImages = {};
     let currentSlotType = null, currentSlotId = null;
 
-    let activeQueue = [];
-    let unmatchedNoiseList = [];
-    let currentGateTab = 'active'; // 'active' | 'paused' | 'noise'
+    let allQueue = [];         // 包含全母表戶與當日狀態
+    let unmatchedNoise = [];   // 無法對齊的雜訊
+    let currentFilter = 'active';
 
-    let aggregatedStops = [];
+    let aggregatedStops = [];  // 聚合後的實體停靠站
     let currentStopIndex = 0;
     let stopStartTime = null;
     let stopwatchTimer = null;
@@ -443,7 +450,7 @@
     let tripLog = { startKm: 0, endKm: 0 };
 
     /* ============================================================
-       開頁原版連動母表（乾淨 fetch，零多餘 Header）
+       開頁連動母表（完全採用原版標準 fetch，絕無多餘變更）
        ============================================================ */
     window.addEventListener('DOMContentLoaded', async () => {
       const badge = document.getElementById('system-status-badge');
@@ -454,40 +461,37 @@
         
         if (json.status === "success" && Array.isArray(json.data)) {
           MOTHER_LIST = json.data;
-          MOTHER_MAP.clear();
-          MOTHER_ORDER_MAP.clear();
+          MOTHER_MAP_BY_ID.clear();
+          MOTHER_MAP_BY_ORDER.clear();
 
           json.data.forEach(item => {
             const id = String(item.customerId || item.id).trim();
             const rawOrder = String(item.order || "9999").trim();
-            const cleanOrder = String(parseInt(rawOrder, 10)); // 正規化數字字串
+            const orderNum = parseInt(rawOrder, 10) || 9999;
+            const paddedOrder = rawOrder.padStart(4, '0');
 
-            const record = {
+            const meta = {
               id: id,
-              order: parseInt(rawOrder, 10) || 9999,
-              orderStr: rawOrder,
+              order: orderNum,
+              orderStr: paddedOrder,
               address: item.address || "",
               memo: item.boxLocation || item.memo || "門口",
               warning: item.warningNotes || "",
               community: item.community || "",
               zone: item.zone || "",
               isGroup: item.isGroup === true || item.isGroup === "true" || id.startsWith("6") || id.startsWith("5"),
-              isWisden: id === "6Q291",
-              isLateKg: id === "6H531"
+              isWisden: id === "6Q291"
             };
 
-            MOTHER_MAP.set(id, record);
-            MOTHER_ORDER_MAP.set(rawOrder, record);
-            MOTHER_ORDER_MAP.set(cleanOrder, record);
-            if (rawOrder.length <= 3) {
-              MOTHER_ORDER_MAP.set(rawOrder.padStart(4, '0'), record); // 補 0 雙向索引
-            }
+            if (id) MOTHER_MAP_BY_ID.set(id, meta);
+            MOTHER_MAP_BY_ORDER.set(paddedOrder, meta);
+            MOTHER_MAP_BY_ORDER.set(String(orderNum), meta);
           });
 
-          badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP.size} 戶)`;
+          badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP_BY_ID.size} 戶)`;
           badge.classList.add('ready');
         } else {
-          throw new Error("格式異常");
+          throw new Error("回傳非有效清單");
         }
       } catch (err) {
         badge.textContent = `⚠️ 母表連線異常: ${err.message}`;
@@ -497,7 +501,7 @@
     });
 
     /* ============================================================
-       相機呼叫與 2048px 高清縮放取樣
+       相機呼叫與 2048px 高清取樣壓縮
        ============================================================ */
     function triggerCapture(type, id) {
       currentSlotType = type;
@@ -514,7 +518,7 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          // 提升至 2048px 高清取樣，保留點陣細線與星號特徵
+          // 提升至 2048px 高清取樣，保留點陣字墨點原始邊界與星號特徵
           const targetWidth = 2048;
           const scale = targetWidth / img.width;
           canvas.width = targetWidth;
@@ -522,7 +526,7 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+          const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
           const slotKey = `${currentSlotType}_${currentSlotId}`;
           capturedImages[slotKey] = base64;
 
@@ -542,11 +546,11 @@
     });
 
     /* ============================================================
-       辨識處理流：呼叫後端 ➔ 多重錨定比對（ID ➔ 序號 ➔ 雜訊隔離）
+       辨識處理流：接收 4 欄位資料 ➔ 雙重硬指標錨定對齊母表
        ============================================================ */
     async function startProcessingFlow() {
-      if (MOTHER_MAP.size === 0) {
-        alert("尚未成功載入母表，請確認網路後重新整理網頁！");
+      if (MOTHER_MAP_BY_ID.size === 0) {
+        alert("尚未成功載入雲端母表，請確認網路連線或重新整理！");
         return;
       }
       const keys = Object.keys(capturedImages);
@@ -567,7 +571,7 @@
           })
           .then(res => res.json())
           .then(resJson => {
-            if (resJson.status !== 'success') throw new Error(resJson.message || "後端解析失敗");
+            if (resJson.status !== 'success') throw new Error(resJson.message);
             return resJson.data;
           });
         });
@@ -578,28 +582,31 @@
 
         const nameMap = { "原": "原味", "淡": "原味", "麥": "麥芽", "卵": "卵磷脂", "巧": "巧克力", "莓": "草莓", "堅": "堅果", "低": "低脂", "酪": "酪乳", "優": "優酪乳", "大": "大瓶936cc" };
 
+        // 解析每列提取成果（相容 [seq, id, active, itemsStr]）
         const parsedDaily = rawExtracted.map(row => {
-          const [rawSeq, rawId, activeFlag, itemsStr] = row;
+          const seq = row.length >= 4 ? String(row[0]).trim() : "";
+          const rawId = row.length >= 4 ? String(row[1]).trim() : String(row[0]).trim();
+          const activeFlag = row.length >= 4 ? row[2] : row[1];
+          const itemsStr = row.length >= 4 ? row[3] : row[2];
+
+          // 多品項一行切分
           const items = (itemsStr || "").split(',').map(str => {
             const parts = str.split(':');
-            const short = parts[0];
+            const shortName = parts[0];
             const temp = parts[1];
             const cnt = parseInt(parts[2], 10) || 1;
             return {
-              name: nameMap[short] || short || "原味",
+              name: nameMap[shortName] || shortName || "原味",
               temp: temp === 'c' ? 'cold' : 'hot',
               count: cnt
             };
-          });
-          return {
-            seq: String(rawSeq || "").trim(),
-            id: String(rawId || "").trim(),
-            active: activeFlag === 1,
-            items: items
-          };
+          }).filter(i => i.name);
+
+          return { seq: seq, id: rawId, active: activeFlag === 1, items: items };
         });
 
-        reconcileMultiAnchor(parsedDaily);
+        // 雙重硬指標對齊母表（拔除路名模糊比對）
+        reconcileDoubleAnchor(parsedDaily);
         overlay.style.display = 'none';
         goToStep(2);
 
@@ -618,91 +625,105 @@
         for (let j = 1; j <= a.length; j++) {
           m[i][j] = b.charAt(i - 1) === a.charAt(j - 1)
             ? m[i - 1][j - 1]
-            : Math.min(m[i - 1][j - 1] + 1, m[i - 1][j] + 1, m[i - 1][j] + 1);
+            : Math.min(m[i - 1][j - 1] + 1, m[i - 1][j] + 1, m[i][j - 1] + 1);
         }
       }
       return m[b.length][a.length];
     }
 
-    /* 多重錨定比對演算法：硬指標雙重保險，絕不路名盲猜 */
-    function reconcileMultiAnchor(dailyList) {
-      activeQueue = [];
-      unmatchedNoiseList = [];
+    /* 
+       多重錨定對齊邏輯：
+       1. 第一優先：8 碼客戶 ID（完全匹配或長度足夠且距離=1）
+       2. 第二保險：4 碼序號 seq 精準對齊母表 order
+       3. 未配對者一律歸入 unmatchedNoise，絕不模糊猜測門牌
+    */
+    function reconcileDoubleAnchor(parsedDaily) {
+      allQueue = [];
+      unmatchedNoise = [];
 
-      dailyList.forEach(daily => {
+      // 建立今日配送點對照映射表
+      const matchedMap = new Map();
+
+      parsedDaily.forEach(daily => {
         let matchedMeta = null;
 
-        // 【保險 1】：8 碼客戶 ID 完全吻合
-        if (daily.id && MOTHER_MAP.has(daily.id)) {
-          matchedMeta = MOTHER_MAP.get(daily.id);
-        }
-
-        // 【保險 1.5】：8 碼客戶 ID 編輯距離 == 1 容錯補正
-        if (!matchedMeta && daily.id && daily.id.length >= 6) {
-          for (let [mId, meta] of MOTHER_MAP.entries()) {
-            if (getEditDistance(daily.id, mId) === 1) {
+        // 優先 1：客戶 ID 匹配
+        if (daily.id && MOTHER_MAP_BY_ID.has(daily.id)) {
+          matchedMeta = MOTHER_MAP_BY_ID.get(daily.id);
+        } else if (daily.id && daily.id.length >= 6) {
+          for (let [mId, meta] of MOTHER_MAP_BY_ID.entries()) {
+            if (getEditDistance(daily.id, mId) <= 1) {
               matchedMeta = meta;
               break;
             }
           }
         }
 
-        // 【保險 2】：ID 損毀時，以出貨單第 1 欄「4 碼序號 (seq)」對齊母表 order
+        // 優先 2：ID 辨識瑕疵，改用出貨單第 1 欄 4 碼序號精確對齊
         if (!matchedMeta && daily.seq) {
-          const cleanSeq = String(parseInt(daily.seq, 10));
-          if (MOTHER_ORDER_MAP.has(daily.seq)) {
-            matchedMeta = MOTHER_ORDER_MAP.get(daily.seq);
-          } else if (MOTHER_ORDER_MAP.has(cleanSeq)) {
-            matchedMeta = MOTHER_ORDER_MAP.get(cleanSeq);
+          const normSeq = daily.seq.padStart(4, '0');
+          if (MOTHER_MAP_BY_ORDER.has(normSeq)) {
+            matchedMeta = MOTHER_MAP_BY_ORDER.get(normSeq);
+          } else if (MOTHER_MAP_BY_ORDER.has(String(parseInt(daily.seq, 10)))) {
+            matchedMeta = MOTHER_MAP_BY_ORDER.get(String(parseInt(daily.seq, 10)));
           }
         }
 
-        // 比對成功 ➔ 掛載母表真理庫
         if (matchedMeta) {
-          activeQueue.push({
-            id: matchedMeta.id,
-            order: matchedMeta.order,
-            address: matchedMeta.address,
-            memo: matchedMeta.warning ? `${matchedMeta.memo} (⚠️${matchedMeta.warning})` : matchedMeta.memo,
-            community: matchedMeta.community,
+          matchedMap.set(matchedMeta.id, {
             items: daily.items,
-            active: daily.active,
-            isGroup: matchedMeta.isGroup,
-            isWisden: matchedMeta.isWisden,
-            isLateKg: matchedMeta.isLateKg
+            active: daily.active
           });
         } else {
-          // 徹底拔除路名模糊猜測，歸入雜訊隔離區
-          unmatchedNoiseList.push({
-            seq: daily.seq,
-            id: daily.id,
-            items: daily.items,
-            rawText: `序號:${daily.seq} | ID:${daily.id}`
-          });
+          // 未配對資料：歸入雜訊待查，絕不硬掛在住戶頭上
+          unmatchedNoise.push(daily);
         }
       });
 
-      // 嚴格依母表 order 昇冪排序
-      activeQueue.sort((a, b) => a.order - b.order);
+      // 將全母表戶載入總隊列，今日有單者標為 active，無單者標為停送
+      MOTHER_LIST.forEach(item => {
+        const id = String(item.customerId || item.id).trim();
+        const meta = MOTHER_MAP_BY_ID.get(id);
+        if (!meta) return;
 
-      // 方案 A 錨定：中豐路 187 號 (30519581) 順接 33 號 (30542842) 後方
-      const idx187 = activeQueue.findIndex(c => c.id === "30519581");
-      const idx33 = activeQueue.findIndex(c => c.id === "30542842");
+        const dayData = matchedMap.get(id);
+        const isActive = dayData ? dayData.active : false;
+        const items = dayData ? dayData.items : [{ name: "原味", temp: "hot", count: 1 }];
+
+        allQueue.push({
+          id: meta.id,
+          order: meta.order,
+          address: meta.address,
+          memo: meta.warning ? `${meta.memo} (⚠️${meta.warning})` : meta.memo,
+          community: meta.community,
+          items: items,
+          active: isActive,
+          isGroup: meta.isGroup,
+          isWisden: meta.isWisden
+        });
+      });
+
+      // 嚴格依母表 order 昇冪排序
+      allQueue.sort((a, b) => a.order - b.order);
+
+      // 方案 A 錨定排序：中豐路 187 號 (30519581) 順接 33 號 (30542842) 後方
+      const idx187 = allQueue.findIndex(c => c.id === "30519581");
+      const idx33 = allQueue.findIndex(c => c.id === "30542842");
       if (idx187 !== -1 && idx33 !== -1 && idx187 !== idx33 + 1) {
-        const item187 = activeQueue.splice(idx187, 1)[0];
-        const newIdx33 = activeQueue.findIndex(c => c.id === "30542842");
-        activeQueue.splice(newIdx33 + 1, 0, item187);
+        const item187 = allQueue.splice(idx187, 1)[0];
+        const newIdx33 = allQueue.findIndex(c => c.id === "30542842");
+        allQueue.splice(newIdx33 + 1, 0, item187);
       }
     }
 
     /* ============================================================
-       Data Gate 工作台渲染與分頁切換
+       步驟 2：Data Gate 資料檢查站（分流切換、膠囊微調、加口味）
        ============================================================ */
-    function switchGateTab(tab) {
-      currentGateTab = tab;
-      document.getElementById('tab-active').classList.toggle('active', tab === 'active');
-      document.getElementById('tab-paused').classList.toggle('active', tab === 'paused');
-      document.getElementById('tab-noise').classList.toggle('active', tab === 'noise');
+    function switchFilter(type) {
+      currentFilter = type;
+      document.getElementById('tab-active').classList.toggle('active', type === 'active');
+      document.getElementById('tab-paused').classList.toggle('active', type === 'paused');
+      document.getElementById('tab-noise').classList.toggle('active', type === 'noise');
       renderStep2Gate();
     }
 
@@ -710,67 +731,66 @@
       const container = document.getElementById('review-list-container');
       container.innerHTML = '';
 
-      if (currentGateTab === 'noise') {
-        if (unmatchedNoiseList.length === 0) {
-          container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">🟢 太棒了！今日零未配對雜訊！</div>';
+      if (currentFilter === 'noise') {
+        // 展示未配對雜訊
+        if (unmatchedNoise.length === 0) {
+          container.innerHTML = '<div style="text-align:center; color:var(--text-dim); padding:20px;">🟢 無任何未配對雜訊，數據完全乾淨！</div>';
         } else {
-          unmatchedNoiseList.forEach((noise, nIdx) => {
+          unmatchedNoise.forEach((n, idx) => {
             const card = document.createElement('div');
             card.className = 'review-card noise';
-            const itemsStr = noise.items.map(i => `${i.name}x${i.count}`).join(' ');
+            const itemsStr = n.items.map(i => `${i.temp === 'hot' ? '🔥' : '❄️'}${i.name}x${i.count}`).join(' ');
             card.innerHTML = `
               <div class="review-card-header">
                 <div>
-                  <span style="font-weight:800; color:var(--warning);">⚠️ 未配對項目 #${noise.seq}</span>
-                  <div style="font-size:12px; color:#fff;">辨識ID: ${noise.id || '空白'} | 品項: ${itemsStr}</div>
+                  <span style="font-weight:800; color:#ef4444;">⚠️ 未配對辨識項 (序號: ${n.seq || '無'} / ID: ${n.id || '無'})</span>
+                  <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">辨識品項: ${itemsStr}</div>
                 </div>
-                <button onclick="resolveNoiseItem(${nIdx})" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; color:#fff; font-weight:700; cursor:pointer;">
-                  手動對齊母表
-                </button>
               </div>
             `;
             container.appendChild(card);
           });
         }
       } else {
-        const targetList = activeQueue.filter(c => currentGateTab === 'active' ? c.active : !c.active);
+        // 展示配送清單 (active) 或 停送清單 (paused)
+        const targetList = allQueue.filter(c => currentFilter === 'active' ? c.active : !c.active);
 
         if (targetList.length === 0) {
-          container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-dim);">此清單目前無資料</div>`;
+          container.innerHTML = `<div style="text-align:center; color:var(--text-dim); padding:20px;">無${currentFilter === 'active' ? '配送' : '停送'}項目</div>`;
         }
 
         targetList.forEach((cust) => {
-          const custIdx = activeQueue.indexOf(cust);
+          const originalIdx = allQueue.findIndex(c => c.id === cust.id);
           const card = document.createElement('div');
           card.className = `review-card ${cust.active ? '' : 'paused'}`;
 
-          let itemsChips = cust.items.map((it, itemIdx) => `
-            <span class="item-chip">
-              <span style="cursor:pointer; color:${it.temp === 'hot' ? 'var(--hot)' : 'var(--cold)'}" onclick="toggleItemTemp(${custIdx}, ${itemIdx})">
-                ${it.temp === 'hot' ? '🔥熱' : '❄️冷'}
+          // 品項膠囊
+          const capsulesHtml = cust.items.map((it, itemIdx) => `
+            <div class="item-capsule">
+              <span onclick="toggleItemTemp(${originalIdx}, ${itemIdx})" style="cursor:pointer; color:${it.temp === 'hot' ? 'var(--hot)' : 'var(--cold)'}; font-weight:800;">
+                ${it.temp === 'hot' ? '🔥' : '❄️'}
               </span>
               <b>${it.name}</b>
-              <button class="chip-btn" onclick="adjustItemQty(${custIdx}, ${itemIdx}, -1)">-</button>
+              <button class="capsule-btn" onclick="adjustItemQty(${originalIdx}, ${itemIdx}, -1)">-</button>
               <span>${it.count}</span>
-              <button class="chip-btn" onclick="adjustItemQty(${custIdx}, ${itemIdx}, 1)">+</button>
-            </span>
+              <button class="capsule-btn" onclick="adjustItemQty(${originalIdx}, ${itemIdx}, 1)">+</button>
+              <button class="capsule-btn" style="background:#7f1d1d;" onclick="removeItem(${originalIdx}, ${itemIdx})">×</button>
+            </div>
           `).join('');
 
           card.innerHTML = `
             <div class="review-card-header">
               <div>
-                <span style="font-weight:800; font-size:14px;">[序號 ${cust.order}] ${cust.address} ${cust.isGroup ? '🏫' : ''}</span>
+                <span style="font-weight:800; font-size:14px;">#${cust.order} ${cust.address} ${cust.isGroup ? '🏫' : ''}</span>
                 <span style="font-size:11px; color:var(--text-dim); display:block;">ID: ${cust.id} | ${cust.memo}</span>
               </div>
-              <button onclick="toggleCustActive(${custIdx})" style="padding:4px 8px; border-radius:6px; border:none; font-weight:800; cursor:pointer; background:${cust.active ? '#065f46' : '#7f1d1d'}; color:#fff;">
+              <button onclick="toggleCustActive(${originalIdx})" style="padding:4px 10px; border-radius:6px; border:none; font-weight:800; cursor:pointer; background:${cust.active ? '#065f46' : '#7f1d1d'}; color:#fff;">
                 ${cust.active ? '配送中' : '已停送'}
               </button>
             </div>
             <div>
-              ${itemsChips}
-              <button onclick="addFlavorToCustomer(${custIdx})" style="padding:4px 8px; font-size:12px; background:#1e293b; border:1px dashed var(--card-border); color:var(--text-dim); border-radius:6px; cursor:pointer; margin-top:4px;">
-                ＋ 加口味
-              </button>
+              ${capsulesHtml}
+              <button class="add-flavor-btn" onclick="addFlavorPrompt(${originalIdx})">＋ 加口味</button>
             </div>
           `;
           container.appendChild(card);
@@ -781,35 +801,36 @@
     }
 
     function toggleCustActive(idx) {
-      activeQueue[idx].active = !activeQueue[idx].active;
+      allQueue[idx].active = !allQueue[idx].active;
       renderStep2Gate();
     }
 
     function toggleItemTemp(custIdx, itemIdx) {
-      const it = activeQueue[custIdx].items[itemIdx];
+      const it = allQueue[custIdx].items[itemIdx];
       it.temp = it.temp === 'hot' ? 'cold' : 'hot';
       renderStep2Gate();
     }
 
     function adjustItemQty(custIdx, itemIdx, delta) {
-      const it = activeQueue[custIdx].items[itemIdx];
+      const it = allQueue[custIdx].items[itemIdx];
       it.count += delta;
       if (it.count <= 0) {
-        activeQueue[custIdx].items.splice(itemIdx, 1);
-        if (activeQueue[custIdx].items.length === 0) activeQueue[custIdx].active = false;
+        allQueue[custIdx].items.splice(itemIdx, 1);
+        if (allQueue[custIdx].items.length === 0) allQueue[custIdx].active = false;
       }
       renderStep2Gate();
     }
 
-    function addFlavorToCustomer(custIdx) {
-      const flavor = prompt("請輸入新增口味名稱 (如 原味, 卵磷脂, 巧克力, 草莓, 麥芽):", "原味");
+    function removeItem(custIdx, itemIdx) {
+      allQueue[custIdx].items.splice(itemIdx, 1);
+      if (allQueue[custIdx].items.length === 0) allQueue[custIdx].active = false;
+      renderStep2Gate();
+    }
+
+    function addFlavorPrompt(custIdx) {
+      const flavor = prompt("請輸入新增口味（原味/卵磷脂/巧克力/草莓/麥芽/堅果/低脂/大瓶936cc）：", "原味");
       if (!flavor) return;
-      activeQueue[custIdx].items.push({
-        name: flavor.trim(),
-        temp: "hot",
-        count: 1
-      });
-      activeQueue[custIdx].active = true;
+      allQueue[custIdx].items.push({ name: flavor, temp: "hot", count: 1 });
       renderStep2Gate();
     }
 
@@ -818,67 +839,23 @@
       const val = input.value.trim();
       if (!val) return;
 
-      let meta = MOTHER_MAP.get(val);
-      if (!meta) meta = MOTHER_ORDER_MAP.get(val);
-
+      const meta = MOTHER_MAP_BY_ID.get(val);
       if (!meta) {
-        alert("母表中未找到此 ID 或序號，請確認！");
+        alert("母表中未找到此客戶編號，請確認！");
         return;
       }
 
-      const existing = activeQueue.find(c => c.id === meta.id);
+      const existing = allQueue.find(c => c.id === val);
       if (existing) {
         existing.active = true;
-      } else {
-        activeQueue.push({
-          id: meta.id,
-          order: meta.order,
-          address: meta.address,
-          memo: meta.memo,
-          community: meta.community,
-          items: [{ name: "原味", temp: "hot", count: 1 }],
-          active: true,
-          isGroup: meta.isGroup,
-          isWisden: meta.isWisden,
-          isLateKg: meta.isLateKg
-        });
-        activeQueue.sort((a, b) => a.order - b.order);
       }
       input.value = '';
-      renderStep2Gate();
-    }
-
-    function resolveNoiseItem(nIdx) {
-      const noise = unmatchedNoiseList[nIdx];
-      const targetId = prompt(`請輸入此雜訊對應的正確 8 碼客戶 ID 或 4 碼序號：\n原始資料: ${noise.rawText}`, noise.id || noise.seq);
-      if (!targetId) return;
-
-      let meta = MOTHER_MAP.get(targetId.trim()) || MOTHER_ORDER_MAP.get(targetId.trim());
-      if (!meta) {
-        alert("查無此母表資料！");
-        return;
-      }
-
-      activeQueue.push({
-        id: meta.id,
-        order: meta.order,
-        address: meta.address,
-        memo: meta.memo,
-        community: meta.community,
-        items: noise.items,
-        active: true,
-        isGroup: meta.isGroup,
-        isWisden: meta.isWisden,
-        isLateKg: meta.isLateKg
-      });
-      activeQueue.sort((a, b) => a.order - b.order);
-      unmatchedNoiseList.splice(nIdx, 1);
-      renderStep2Gate();
+      switchFilter('active');
     }
 
     function updateBottleStats() {
       let total = 0, hot = 0, cold = 0, stops = 0;
-      activeQueue.forEach(c => {
+      allQueue.forEach(c => {
         if (c.active) {
           stops++;
           c.items.forEach(i => {
@@ -900,23 +877,16 @@
         statusBadge.textContent = `✔ 總數相符 (${total}瓶)`;
         statusBadge.className = "gate-target-badge gate-match";
       } else {
-        statusBadge.textContent = `⚠️ 差 ${Math.abs(targetBottles - total)} 瓶 (現有${total}/目標${targetBottles})`;
+        statusBadge.textContent = `⚠️ 總數差 ${Math.abs(targetBottles - total)} 瓶 (現有${total}/紙本${targetBottles})`;
         statusBadge.className = "gate-target-badge gate-mismatch";
       }
-
-      // 標註 tab 數量
-      const activeCount = activeQueue.filter(c => c.active).length;
-      const pausedCount = activeQueue.filter(c => !c.active).length;
-      document.getElementById('tab-active').textContent = `📦 配送清單 (${activeCount})`;
-      document.getElementById('tab-paused').textContent = `🚫 停送清單 (${pausedCount})`;
-      document.getElementById('tab-noise').textContent = `⚠️ 待核對雜訊 (${unmatchedNoiseList.length})`;
     }
 
     /* ============================================================
-       步驟 3：裝箱演算法與踏板副箱
+       步驟 3：裝箱演算法與踏板熱副箱（完整保留）
        ============================================================ */
     function calculatePackingAndGo() {
-      const activeList = activeQueue.filter(c => c.active);
+      const activeList = allQueue.filter(c => c.active);
       let auxHotBagList = [];
       let mainHotBottles = [];
       let mainColdFlavors = {};
@@ -978,6 +948,10 @@
       document.getElementById('pack-top-count').textContent = `${topCount} 瓶`;
       document.getElementById('pack-cold-count').textContent = `${Object.values(mainColdFlavors).reduce((a, b) => a + b, 0)} 瓶`;
 
+      const hasWisden = activeList.some(c => c.isWisden);
+      document.getElementById('key-alert-box').style.display = hasWisden ? 'block' : 'none';
+      document.getElementById('key-free-card').style.display = hasWisden ? 'none' : 'block';
+
       goToStep(3);
     }
 
@@ -994,16 +968,9 @@
     }
 
     /* ============================================================
-       步驟 4：出車檢核（威士登鑰匙 + 里程 + 冰塊）
+       步驟 4：出車檢核（里程 + 冰塊 + 鑰匙）
        ============================================================ */
-    function checkKeyAndGo() {
-      const isWisden = activeQueue.some(c => c.active && c.isWisden);
-      document.getElementById('key-alert-box').classList.toggle('active', isWisden);
-      document.getElementById('key-free-card').style.display = isWisden ? 'none' : 'block';
-      goToStep(4);
-    }
-
-    function startDelivery() {
+    function validateStartTrip() {
       const km = parseFloat(document.getElementById('input-start-odometer').value);
       if (isNaN(km) || km <= 0) {
         alert("請輸入正確的機車出發里程數！");
@@ -1014,9 +981,9 @@
         return;
       }
 
-      const isWisden = activeQueue.some(c => c.active && c.isWisden);
-      if (isWisden && !document.getElementById('check-wisden-key').checked) {
-        alert("今日威士登幼兒園有排送，請勾選確認已攜帶鑰匙！");
+      const hasWisden = allQueue.some(c => c.active && c.isWisden);
+      if (hasWisden && !document.getElementById('check-wisden-key').checked) {
+        alert("今日有排送威士登幼兒園，請確認已攜帶大門鑰匙！");
         return;
       }
 
@@ -1028,10 +995,10 @@
     }
 
     /* ============================================================
-       站點聚合算法：同門牌/社區多樓層合為單站
+       站點聚合算法：將相同社區/同門牌多樓層合併為單站
        ============================================================ */
     function buildAggregatedStops() {
-      const activeList = activeQueue.filter(c => c.active);
+      const activeList = allQueue.filter(c => c.active);
       aggregatedStops = [];
 
       activeList.forEach(cust => {
@@ -1062,7 +1029,7 @@
     }
 
     /* ============================================================
-       步驟 5：配送現場聚合視圖、原生導航與特徵語音
+       步驟 5：配送現場視圖、地圖跳轉與特徵語音
        ============================================================ */
     function renderCurrentStop() {
       if (currentStopIndex >= aggregatedStops.length) {
@@ -1087,7 +1054,6 @@
 
       document.getElementById('current-district').textContent = district;
       document.getElementById('current-address').textContent = pureAddress;
-      document.getElementById('current-memo-box').textContent = `📦 ${stop.orders.map(o => o.memo).join(' | ')}`;
       document.getElementById('current-index-label').textContent = `站點 ${currentStopIndex + 1} / ${aggregatedStops.length} (共 ${stop.orders.length} 戶)`;
 
       const bainianBox = document.getElementById('bainian-special-box');
@@ -1103,6 +1069,8 @@
       } else {
         bainianBox.classList.remove('show');
       }
+
+      document.getElementById('current-memo-box').textContent = `📦 ${stop.orders.map(o => o.memo).join(' | ')}`;
 
       const ordersContainer = document.getElementById('current-orders-container');
       ordersContainer.innerHTML = '';
@@ -1136,9 +1104,9 @@
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
       if (isIOS) {
-        window.location.href = `maps://[maps.apple.com/?daddr=$](https://maps.apple.com/?daddr=$){encoded}&dirflg=d`;
+        window.location.href = `maps://maps.apple.com/?daddr=${encoded}&dirflg=d`;
       } else {
-        window.open(`[https://www.google.com/maps/dir/?api=1&destination=$](https://www.google.com/maps/dir/?api=1&destination=$){encoded}`, '_blank');
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encoded}`, '_blank');
       }
     }
 
@@ -1192,7 +1160,10 @@
       document.getElementById(`step-${s}`).classList.add('active');
       document.querySelectorAll('.step-pill').forEach((p, idx) => p.classList.toggle('active', idx + 1 <= s));
 
-      if (s === 2) renderStep2Gate();
+      if (s === 2) {
+        currentFilter = 'active';
+        switchFilter('active');
+      }
     }
   </script>
 </body>
