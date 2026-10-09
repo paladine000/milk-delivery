@@ -479,17 +479,22 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const targetWidth = 1300;
+          // 提升至 2000px，保留針孔墨點邊界
+          const targetWidth = 2000;
           const scale = targetWidth / img.width;
           canvas.width = targetWidth;
           canvas.height = img.height * scale;
           const ctx = canvas.getContext('2d');
+          
+          // 核心物理增強：提升 140% 對比度，徹底濾除紙面雜訊，讓墨點與星號黑白分明
+          ctx.filter = 'contrast(140%) brightness(105%)';
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+          // 品質拉至 0.92，防止壓縮失真
+          const base64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
           const slotKey = `${currentSlotType}_${currentSlotId}`;
           capturedImages[slotKey] = base64;
-
+      
           const btn = currentSlotType === 'sheet' 
             ? document.getElementById(`slot-${currentSlotId}`) 
             : document.getElementById(`kg-btn-${currentSlotId}`);
@@ -594,54 +599,173 @@
       return matrix[b.length][a.length];
     }
 
-    function reconcileWithMotherTable(dailyList) {
-      let combined = [];
-
-      dailyList.forEach(daily => {
-        let matchedMeta = MOTHER_MAP.get(daily.id);
-
-        if (!matchedMeta && daily.id.length >= 5) {
-          for (let [mId, meta] of MOTHER_MAP.entries()) {
-            if (getEditDistance(daily.id, mId) <= 1) {
-              matchedMeta = meta;
-              break;
-            }
+    /* 
+       容錯糾錯函式：計算兩個字串的編輯距離（Levenshtein Distance）
+    */
+    function getEditDistance(a, b) {
+      if (a.length === 0) return b.length;
+      if (b.length === 0) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
           }
         }
+      }
+      return matrix[b.length][a.length];
+    }
 
-        if (matchedMeta) {
-          let memoText = matchedMeta.memo;
-          if (matchedMeta.warning) memoText += ` (⚠️${matchedMeta.warning})`;
+    /* ============================================================
+       【新增此處】確定性口味正則解析器（支援一行多口味、冷熱與瓶數切分）
+       ============================================================ */
+    function parseRawFlavorString(rawStr) {
+      if (!rawStr || typeof rawStr !== 'string') return [];
+      
+      const nameMap = {
+        "淡": "原味", "原": "原味", "卵": "卵磷脂", "巧": "巧克力", 
+        "莓": "草莓", "麥": "麥芽", "堅": "堅果", "低": "低脂", 
+        "酪": "酪乳", "優": "優酪乳", "大": "大瓶936cc"
+      };
 
-          combined.push({
-            id: matchedMeta.id,
-            order: matchedMeta.order,
-            address: matchedMeta.address,
-            memo: memoText,
-            community: matchedMeta.community,
-            items: daily.items,
-            active: daily.active,
-            isGroup: matchedMeta.isGroup,
-            isWisden: matchedMeta.isWisden,
-            isLateKg: matchedMeta.isLateKg,
-            bainian: matchedMeta.bainian
-          });
-        }
-      });
+      const items = [];
+      // 正則捕捉：可選星號(*) + 可選數量數字 + 口味代碼
+      const regex = /(\*?)(\d+)?([淡原卵巧莓麥堅低酪優大])/g;
+      let match;
 
-      combined.sort((a, b) => a.order - b.order);
+      while ((match = regex.exec(rawStr)) !== null) {
+        const isCold = match[1] === '*';
+        const count = match[2] ? parseInt(match[2], 10) : 1;
+        const shortCode = match[3];
 
-      // 方案 A 錨定排序：187 號順接 33 號後方
-      const idx187 = combined.findIndex(c => c.id === "30519581");
-      const idx33 = combined.findIndex(c => c.id === "30542842");
-      if (idx187 !== -1 && idx33 !== -1 && idx187 !== idx33 + 1) {
-        const item187 = combined.splice(idx187, 1)[0];
-        const newIdx33 = combined.findIndex(c => c.id === "30542842");
-        combined.splice(newIdx33 + 1, 0, item187);
+        items.push({
+          name: nameMap[shortCode] || shortCode,
+          temp: isCold ? 'cold' : 'hot',
+          count: count
+        });
       }
 
-      return combined;
+      // 防呆：若正則未匹配出任何字元，依據星號給予安全預設 1 瓶原味
+      if (items.length === 0) {
+        items.push({
+          name: "原味",
+          temp: rawStr.includes('*') ? 'cold' : 'hot',
+          count: 1
+        });
+      }
+
+      return items;
     }
+
+    /* 
+       母表真實數據對齊器
+    */
+      function reconcileWithMotherTable(dailyRawRows) {
+        let combined = [];
+      
+        dailyRawRows.forEach(row => {
+          // 結構: [seq, rawId, rawFlavorStr, addrSnippet]
+          const seq = String(row[0] || "").padStart(4, '0');
+          const rawId = String(row[1] || "").trim();
+          const rawFlavorStr = String(row[2] || "").trim();
+          const addrSnippet = String(row[3] || "").trim();
+      
+          if (!rawFlavorStr) return; // 空白跳過
+      
+          // 透過確定性正則解析品項
+          const items = parseRawFlavorString(rawFlavorStr);
+      
+          let matchedMeta = null;
+      
+          // 【錨點 1：8 碼客戶 ID 完全相符】
+          matchedMeta = MOTHER_MAP.get(rawId);
+      
+          // 【錨點 2：8 碼 ID 容錯比對 (距離 <= 2 碼)】
+          if (!matchedMeta && rawId.length >= 6) {
+            for (let [mId, mData] of MOTHER_MAP.entries()) {
+              if (getEditDistance(rawId, mId) <= 2) {
+                matchedMeta = mData;
+                break;
+              }
+            }
+          }
+      
+          // 【錨點 3：出貨單序號 (order) 精確匹配】
+          // 即使 ID 8 碼全認錯，序號 (如 0160) 對上母表 order 即鎖定
+          if (!matchedMeta && seq) {
+            const numericSeq = parseInt(seq, 10);
+            for (let [mId, mData] of MOTHER_MAP.entries()) {
+              if (parseInt(mData.order, 10) === numericSeq) {
+                matchedMeta = mData;
+                break;
+              }
+            }
+          }
+      
+          // 【錨點 4：地址門牌特徵交叉比對】
+          if (!matchedMeta && addrSnippet.length >= 3) {
+            for (let [mId, mData] of MOTHER_MAP.entries()) {
+              const cleanMotherAddr = mData.address.replace(/^桃園市(平鎮區|龍潭區)/, '');
+              if (mData.address.includes(addrSnippet) || addrSnippet.includes(cleanMotherAddr)) {
+                matchedMeta = mData;
+                break;
+              }
+            }
+          }
+      
+          // 裝載回母表真理庫
+          if (matchedMeta) {
+            let memoText = matchedMeta.memo;
+            if (matchedMeta.warning) memoText += ` (⚠️${matchedMeta.warning})`;
+      
+            combined.push({
+              id: matchedMeta.id,
+              order: matchedMeta.order,
+              address: matchedMeta.address,
+              memo: memoText,
+              community: matchedMeta.community,
+              items: items,
+              active: true,
+              isGroup: matchedMeta.isGroup,
+              isWisden: matchedMeta.isWisden,
+              isLateKg: matchedMeta.isLateKg,
+              bainian: matchedMeta.bainian
+            });
+          } else {
+            // 容錯備援：母表未匹配到的臨時戶
+            combined.push({
+              id: rawId || seq,
+              order: parseInt(seq, 10) || 9999,
+              address: addrSnippet ? `[未對齊母表] ${addrSnippet}` : `臨時戶 (#${rawId})`,
+              memo: "手動確認",
+              items: items,
+              active: true,
+              isGroup: false,
+              isWisden: false,
+              isLateKg: false,
+              bainian: null
+            });
+          }
+        });
+      
+        // 嚴格依母表 order 昇冪排序
+        combined.sort((a, b) => a.order - b.order);
+      
+        // 方案 A 錨定：中豐路 187 號順接 33 號後方
+        const idx187 = combined.findIndex(c => c.id === "30519581");
+        const idx33 = combined.findIndex(c => c.id === "30542842");
+        if (idx187 !== -1 && idx33 !== -1 && idx187 !== idx33 + 1) {
+          const item187 = combined.splice(idx187, 1)[0];
+          const newIdx33 = combined.findIndex(c => c.id === "30542842");
+          combined.splice(newIdx33 + 1, 0, item187);
+        }
+      
+        return combined;
+      }
 
     /* ============================================================
        步驟 2：核對與微調渲染 (Data Gate)
