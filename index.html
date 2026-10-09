@@ -36,6 +36,7 @@
     .header-title { font-size: 16px; font-weight: 800; color: var(--accent); }
     .status-badge { font-size: 11px; background: #1e293b; color: var(--text-dim); padding: 4px 8px; border-radius: 4px; font-weight: 700; transition: all 0.3s; }
     .status-badge.ready { background: #064e3b; color: #a7f3d0; }
+    .status-badge.cached { background: #854d0e; color: #fef08a; }
 
     .step-indicator { display: flex; justify-content: space-between; margin-bottom: 12px; gap: 4px; }
     .step-pill { flex: 1; height: 6px; border-radius: 3px; background: var(--card-border); transition: background 0.3s; }
@@ -115,8 +116,8 @@
       z-index: 999;
     }
     .loading-spinner {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border: 5px solid #1e293b;
       border-top-color: var(--accent);
       border-radius: 50%;
@@ -125,11 +126,11 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Data Gate 頂部過濾標籤 */
-    .filter-tab-bar { display: flex; gap: 6px; margin-bottom: 10px; }
-    .filter-tab-btn {
+    /* Data Gate 專用切換器與卡片樣式 */
+    .filter-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .tab-btn {
       flex: 1;
-      padding: 8px 4px;
+      height: 40px;
       background: #1e293b;
       border: 1px solid var(--card-border);
       border-radius: 8px;
@@ -137,10 +138,8 @@
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      text-align: center;
     }
-    .filter-tab-btn.active { background: #334155; color: #fff; border-color: var(--accent); }
-    .filter-tab-btn.danger.active { border-color: var(--hot); color: #fecaca; }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     .gate-target-bar {
       display: flex;
@@ -157,38 +156,32 @@
     .gate-mismatch { background: #7f1d1d; color: #fecaca; }
 
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-    .stat-box { background: #1e293b; padding: 6px 2px; border-radius: 8px; text-align: center; }
-    .stat-val { font-size: 17px; font-weight: 800; color: var(--highlight); }
+    .stat-box { background: #1e293b; padding: 8px 4px; border-radius: 8px; text-align: center; }
+    .stat-val { font-size: 18px; font-weight: 800; color: var(--highlight); }
     .stat-label { font-size: 11px; color: var(--text-dim); }
 
-    .review-list { max-height: 48vh; overflow-y: auto; margin-bottom: 10px; }
-    .review-card {
-      background: #111827;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 8px;
-    }
-    .review-card.paused { opacity: 0.45; }
-    .review-card.noise { border-color: var(--warning); background: #261908; }
-    .review-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .review-list { max-height: 44vh; overflow-y: auto; margin-bottom: 10px; }
+    .review-item { display: flex; flex-direction: column; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
+    .review-item.paused { opacity: 0.45; }
+    .review-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .toggle-tag { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .toggle-tag.send { background: #065f46; color: #a7f3d0; }
+    .toggle-tag.pause { background: #7f1d1d; color: #fecaca; }
 
-    /* 複合口味膠囊 */
-    .capsule-list { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-    .item-capsule {
+    .edit-chip {
       display: inline-flex;
       align-items: center;
+      gap: 5px;
       background: #1f2937;
-      border: 1px solid #374151;
+      padding: 4px 8px;
       border-radius: 6px;
-      padding: 2px 6px;
+      margin-right: 6px;
+      margin-top: 4px;
       font-size: 13px;
-      gap: 4px;
     }
-    .capsule-temp { font-weight: 800; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
-    .capsule-btn {
-      width: 20px;
-      height: 20px;
+    .edit-btn {
+      width: 22px;
+      height: 22px;
       background: #374151;
       border: none;
       color: #fff;
@@ -196,38 +189,58 @@
       font-weight: 900;
       cursor: pointer;
     }
-    .btn-add-flavor {
-      background: #0f766e;
-      border: none;
-      color: #ccfbf1;
+    .add-flavor-btn {
+      background: #312e81;
+      border: 1px dashed #6366f1;
+      color: #c7d2fe;
       border-radius: 6px;
       padding: 4px 8px;
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
     }
 
-    .pack-layer { margin-bottom: 10px; border-left: 4px solid var(--card-border); padding-left: 10px; }
-    .pack-layer.aux-hot { border-left-color: var(--hot); background: rgba(239, 68, 68, 0.08); padding: 8px 10px; border-radius: 0 8px 8px 0; }
+    .pack-layer { margin-bottom: 12px; border-left: 4px solid var(--card-border); padding-left: 12px; }
+    .pack-layer.aux-hot { border-left-color: var(--hot); background: rgba(239, 68, 68, 0.08); padding: 10px 12px; border-radius: 0 8px 8px 0; }
     .pack-layer.bottom { border-left-color: var(--warning); }
     .pack-layer.top { border-left-color: #38bdf8; }
     .pack-layer.cold { border-left-color: var(--cold); }
+    .pack-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; display: flex; justify-content: space-between; }
     .flavor-tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-    .flavor-tag { background: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--text-main); }
+    .flavor-tag { background: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 13px; color: var(--text-main); }
     .flavor-tag b { color: var(--highlight); }
+
+    .key-alert-card { border: 2px solid var(--hot); background: rgba(239, 68, 68, 0.15); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+    .key-alert-card.active { display: block; }
+    .key-checkbox-label { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 700; cursor: pointer; }
+    .key-checkbox { width: 28px; height: 28px; accent-color: var(--hot); }
 
     .checklist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; font-weight: 700; }
     .checklist-input { width: 100%; padding: 10px; background: #1e293b; border: 1px solid var(--card-border); border-radius: 8px; color: #fff; font-size: 16px; }
 
     /* 現場視圖樣式 */
-    .district-text { font-size: 13px; font-weight: 600; color: #64748b; }
+    .delivery-district { font-size: 13px; font-weight: 600; color: #64748b; }
     .delivery-address { font-size: 28px; font-weight: 900; line-height: 1.25; margin: 4px 0 6px 0; color: #ffffff; cursor: pointer; }
     .delivery-hint { font-size: 11px; color: #38bdf8; margin-bottom: 8px; }
     .delivery-memo { font-size: 14px; color: var(--warning); background: #372809; padding: 6px 10px; border-radius: 6px; margin-bottom: 12px; }
-
+    
     .bainian-card { background: #1e1b4b; border: 2px solid #6366f1; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
     .bainian-card.show { display: block; }
-    .bainian-main { font-size: 22px; font-weight: 900; color: #a5b4fc; }
+    .bainian-main { font-size: 22px; font-weight: 900; color: #a5b4fc; margin-bottom: 4px; }
+    .elevator-badge { display: inline-flex; align-items: center; gap: 4px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+
+    .delivery-items-box { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+    .delivery-item-row { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .temp-pill { font-size: 12px; padding: 2px 6px; border-radius: 4px; }
+    .temp-pill.hot { background: var(--hot); color: #fff; }
+    .temp-pill.cold { background: var(--cold); color: #fff; }
+
+    .btn-finish-stop { height: 74px; font-size: 20px; background: var(--accent); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+    .tts-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tts-controls button { flex: 1; height: 48px; background: #1e293b; border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-weight: 600; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -249,16 +262,16 @@
 
   <div class="loading-overlay" id="loading-overlay">
     <div class="loading-spinner"></div>
-    <div id="loading-text" style="font-size:16px; font-weight:700; color:#fff;">⚡ 解析與母表對齊中...</div>
-    <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">100% 依據紙本點單・絕無捏造資料</div>
+    <div id="loading-text" style="font-size:16px; font-weight:700; color:#fff;">⚡ 解析與母表二重錨定中...</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">2048px 高清取樣・絕無捏造假資料</div>
   </div>
 
-  <!-- 步驟 1：A5 與幼兒園拍攝 -->
+  <!-- 步驟 1：A5 與幼兒園拍單（2048px 高清取樣） -->
   <div class="wizard-step active" id="step-1">
     <div class="card">
-      <h2>📸 步驟 1/5：A5 高清拍攝建檔 (2048px)</h2>
+      <h2>📸 步驟 1/5：A5 對折拍攝建檔</h2>
       
-      <h3>📄 宅配單（對折拍攝 A5）</h3>
+      <h3>📄 宅配單（對折拍攝 A5，至少拍第 1 頁上/下）</h3>
       <div class="slot-grid">
         <div class="slot-btn" id="slot-1" onclick="triggerCapture('sheet', 1)"><div class="slot-title">第 1 頁・上半</div><div class="slot-desc" id="slot-desc-1">待拍攝</div></div>
         <div class="slot-btn" id="slot-2" onclick="triggerCapture('sheet', 2)"><div class="slot-title">第 1 頁・下半</div><div class="slot-desc" id="slot-desc-2">待拍攝</div></div>
@@ -277,77 +290,72 @@
       </div>
     </div>
 
-    <button class="btn" id="btn-start-parse" onclick="startProcessingFlow()">⚡ 開始核實辨識 ➔ 進入數據檢查站</button>
+    <button class="btn" id="btn-start-parse" onclick="startProcessingFlow()">⚡ 開始核實辨識 ➔ 進入 Data Gate</button>
   </div>
 
-  <!-- 步驟 2：Data Gate 資料檢查站（過濾切換器 ＋ 複合膠囊微調） -->
+  <!-- 步驟 2：Data Gate 資料檢查站（過濾切換器） -->
   <div class="wizard-step" id="step-2">
     <div class="card">
       <h2>📊 步驟 2/5：Data Gate 資料檢查站</h2>
       
       <!-- 過濾切換器 -->
-      <div class="filter-tab-bar">
-        <div class="filter-tab-btn active" id="tab-btn-active" onclick="switchGateTab('active')">📦 配送清單 (<span id="tab-cnt-active">0</span>)</div>
-        <div class="filter-tab-btn" id="tab-btn-paused" onclick="switchGateTab('paused')">🚫 停送清單 (<span id="tab-cnt-paused">0</span>)</div>
-        <div class="filter-tab-btn danger" id="tab-btn-noise" onclick="switchGateTab('noise')" style="display:none;">⚠️ 雜訊 (<span id="tab-cnt-noise">0</span>)</div>
+      <div class="filter-tabs">
+        <button class="tab-btn active" id="tab-delivery" onclick="switchGateTab('delivery')">📦 配送清單</button>
+        <button class="tab-btn" id="tab-paused" onclick="switchGateTab('paused')">🚫 停送清單</button>
+        <button class="tab-btn" id="tab-unmatched" onclick="switchGateTab('unmatched')">⚠️ 待核對雜訊</button>
       </div>
 
       <!-- 總瓶數對帳條 -->
       <div class="gate-target-bar">
         <div>
-          <span style="font-size:12px; color:var(--text-dim); display:block;">紙本應送目標</span>
+          <span style="font-size:12px; color:var(--text-dim); display:block;">紙本應送對帳目標</span>
           <input type="number" id="input-target-bottles" value="100" style="width:64px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:4px; font-weight:800; font-size:14px; padding:2px 4px;" onchange="renderStep2Review()"> 瓶
         </div>
         <div class="gate-target-badge" id="gate-target-status">核對中</div>
       </div>
 
       <div class="stat-grid">
-        <div class="stat-box"><div class="stat-val" id="stat-total">0</div><div class="stat-label">辨識總數</div></div>
+        <div class="stat-box"><div class="stat-val" id="stat-total">0</div><div class="stat-label">總瓶數</div></div>
         <div class="stat-box"><div class="stat-val" id="stat-hot" style="color:var(--hot)">0</div><div class="stat-label">熱奶</div></div>
         <div class="stat-box"><div class="stat-val" id="stat-cold" style="color:var(--cold)">0</div><div class="stat-label">冷奶</div></div>
         <div class="stat-box"><div class="stat-val" id="stat-stops">0</div><div class="stat-label">應送戶</div></div>
       </div>
 
+      <!-- 快速補單欄 -->
       <div style="display:flex; gap:6px; margin-bottom:10px;">
-        <input type="text" id="input-quick-add" placeholder="輸入 8 碼客戶編號 (如 30514718) 快速補單" style="flex:1; padding:8px; background:#1e293b; border:1px solid var(--card-border); border-radius:6px; color:#fff; font-size:13px;">
+        <input type="text" id="input-quick-add" placeholder="輸入 8碼ID 或 4碼序號 (如 30514718 或 0160)" style="flex:1; padding:8px; background:#1e293b; border:1px solid var(--card-border); border-radius:6px; color:#fff; font-size:13px;">
         <button onclick="quickAddCustomer()" style="padding:0 12px; background:var(--accent); border:none; border-radius:6px; color:#fff; font-weight:700; cursor:pointer;">＋ 補單</button>
       </div>
 
       <div class="review-list" id="review-list-container"></div>
     </div>
-    <button class="btn" onclick="calculatePackingAndGo()">✔ 確認無誤 ➔ 產生裝箱指南</button>
+    <button class="btn" onclick="calculatePackingAndGo()">✔ 鎖定資料 ➔ 產生正確裝箱</button>
   </div>
 
-  <!-- 步驟 3：裝箱演算法與踏板副箱 -->
+  <!-- 步驟 3：真物理裝箱配置（保留） -->
   <div class="wizard-step" id="step-3">
     <div class="card">
       <h2>📦 步驟 3/5：真物理裝箱與副箱建議</h2>
       <div id="aux-box-container"></div>
       <div class="pack-layer bottom">
-        <div class="pack-title" style="display:flex; justify-content:space-between; font-weight:800; margin-bottom:4px;">
-          <span style="color:var(--warning)">📥 主右熱箱・先裝下層（後半段地基）</span><span id="pack-bottom-count">0 瓶</span>
-        </div>
+        <div class="pack-title"><span style="color:var(--warning)">📥 主右熱箱・先裝下層（後半段地基）</span><span id="pack-bottom-count">0 瓶</span></div>
         <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">40 瓶平整散瓶滿鋪地基（模範生袋裝置於角落）</div>
         <div class="flavor-tag-list" id="pack-bottom-flavors"></div>
       </div>
       <div class="pack-layer top">
-        <div class="pack-title" style="display:flex; justify-content:space-between; font-weight:800; margin-bottom:4px;">
-          <span style="color:#38bdf8">📤 主右熱箱・後裝上層（前半段先抽）</span><span id="pack-top-count">0 瓶</span>
-        </div>
+        <div class="pack-title"><span style="color:#38bdf8">📤 主右熱箱・後裝上層（前半段先抽）</span><span id="pack-top-count">0 瓶</span></div>
         <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">前半段散瓶平放於地基上</div>
         <div class="flavor-tag-list" id="pack-top-flavors"></div>
       </div>
       <div class="pack-layer cold">
-        <div class="pack-title" style="display:flex; justify-content:space-between; font-weight:800; margin-bottom:4px;">
-          <span style="color:var(--cold)">❄️ 主左冷箱・全線集中</span><span id="pack-cold-count">0 瓶</span>
-        </div>
+        <div class="pack-title"><span style="color:var(--cold)">❄️ 主左冷箱・全線集中</span><span id="pack-cold-count">0 瓶</span></div>
         <div class="flavor-tag-list" id="pack-cold-flavors"></div>
       </div>
     </div>
     <button class="btn" onclick="checkKeyAndGo()">✔ 裝箱完畢 ➔ 行前防呆確認</button>
   </div>
 
-  <!-- 步驟 4：出車檢核（里程數 + 冰塊 + 鑰匙） -->
+  <!-- 步驟 4：出車檢核（里程 ＋ 冰塊 ＋ 鑰匙） -->
   <div class="wizard-step" id="step-4">
     <div class="card">
       <h2>🛡️ 步驟 4/5：行前出車檢查</h2>
@@ -362,26 +370,27 @@
         <span>🧊 防災保冷確認：冰箱／保冷袋已放入冰塊</span>
       </label>
 
-      <div id="key-alert-box" style="display:none; background:rgba(239, 68, 68, 0.15); border:1px solid var(--hot); border-radius:8px; padding:10px; margin-top:8px;">
-        <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:var(--hot); cursor:pointer;">
-          <input type="checkbox" id="key-confirm-check">
+      <div class="key-alert-card" id="key-alert-box">
+        <div style="color:var(--hot); font-weight:900; font-size:18px; margin-bottom:8px;">⚠️ 威士登幼兒園鑰匙確認</div>
+        <div style="font-size:14px; margin-bottom:12px;">今日【威士登幼兒園】有排送，請確認大門鑰匙！</div>
+        <label class="key-checkbox-label">
+          <input type="checkbox" class="key-checkbox" id="key-confirm-check">
           <span>🔑 威士登鑰匙已在身上</span>
         </label>
       </div>
-
-      <div id="key-free-card" class="card" style="background:#064e3b; border-color:var(--accent); display:none; padding:10px; margin-top:8px;">
-        <div style="font-weight:700; color:#a7f3d0; font-size:13px;">🟢 今日威士登幼兒園停送，免帶鑰匙！</div>
+      <div id="key-free-card" class="card" style="background:#064e3b; border-color:var(--accent); display:none;">
+        <div style="font-weight:700; color:#a7f3d0;">🟢 今日威士登幼兒園停送，免帶鑰匙！</div>
       </div>
     </div>
     <button class="btn" id="btn-start-run" onclick="startDelivery()">🚀 確認出車 ➔ 開始導航計時</button>
   </div>
 
-  <!-- 步驟 5：現場聚合配送視圖 -->
+  <!-- 步驟 5：配送現場聚合視圖（巨字 ＋ 原生導航 ＋ 特徵語音） -->
   <div class="wizard-step" id="step-5">
     <div class="bainian-card" id="bainian-special-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <span style="font-size:12px; font-weight:700; color:#c7d2fe;">🏢 百年大鎮專屬車道視圖</span>
-        <span id="bainian-elevator-badge" style="background:#dc2626; color:#fff; font-size:12px; font-weight:800; padding:2px 6px; border-radius:4px; display:none;">🛗 需搭電梯</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:13px; font-weight:700; color:#c7d2fe;">🏢 百年大鎮專屬視圖</span>
+        <span class="elevator-badge" id="bainian-elevator-badge" style="display:none;">🛗 需搭電梯</span>
       </div>
       <div class="bainian-main" id="bainian-lane-building">5 車道 ➔ 耶魯 C 棟</div>
       <div style="font-size:18px; font-weight:800; color:#fff;" id="bainian-floor">4 樓</div>
@@ -389,7 +398,7 @@
 
     <div class="card" style="margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between;">
-        <span class="district-text" id="current-district">平鎮區</span>
+        <span class="delivery-district" id="current-district">平鎮區</span>
         <span style="font-size:13px; color:var(--text-dim);" id="current-index-label">站點 1 / 70</span>
       </div>
       
@@ -399,14 +408,14 @@
       <div class="delivery-memo" id="current-memo">箱位備註</div>
     </div>
 
-    <div class="card" id="current-items-box" style="padding:10px; margin-bottom:12px;"></div>
+    <div class="delivery-items-box" id="current-items-box"></div>
 
-    <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <button onclick="speakCurrentStop()" style="flex:1; height:46px; background:#1e293b; border:1px solid var(--card-border); border-radius:8px; color:#fff; font-weight:700; cursor:pointer;">🔊 重複播報</button>
+    <div class="tts-controls">
+      <button onclick="speakCurrentStop()">🔊 重複播報</button>
     </div>
 
-    <button class="btn" id="btn-complete-stop" style="height:72px; font-size:20px;" onclick="completeCurrentStop()">
-      ⏱️ 00:00 ➔ 停靠完成 (下一站)
+    <button class="btn btn-finish-stop" id="btn-complete-stop" onclick="completeCurrentStop()">
+      ⏱️ 00:00 ➔ 投遞完成
     </button>
   </div>
 
@@ -414,29 +423,40 @@
     const GAS_URL = "[https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPsWzn1lqurp5HadnjoZw/exec](https://script.google.com/macros/s/AKfycbx374DA8fn30nLgx0PqBSs6f-hxF7oLm-Jo_r3weUpBTfnhPAPsWzn1lqurp5HadnjoZw/exec)";
 
     const CAP_MAP = {
-      '原味': '銀色瓶蓋', '卵磷脂': '黃色瓶蓋', '巧克力': '咖啡色瓶蓋',
-      '草莓': '粉紅色瓶蓋', '麥芽': '綠色瓶蓋', '堅果': '褐色瓶蓋',
-      '低脂': '藍色瓶蓋', '酪乳': '白色瓶蓋', '優酪乳': '專用標籤', '大瓶936cc': '大瓶蓋'
+      '原味': '銀色瓶蓋',
+      '卵磷脂': '黃色瓶蓋',
+      '巧克力': '咖啡色瓶蓋',
+      '草莓': '粉紅色瓶蓋',
+      '麥芽': '綠色瓶蓋',
+      '堅果': '褐色瓶蓋',
+      '低脂': '藍色瓶蓋',
+      '酪乳': '白色瓶蓋',
+      '優酪乳': '專用標籤',
+      '大瓶936cc': '大瓶蓋'
     };
 
-    let MOTHER_MAP_BY_ID = new Map();
-    let MOTHER_MAP_BY_ORDER = new Map();
+    let MOTHER_MAP = new Map();
+    let MOTHER_ORDER_MAP = new Map(); // 4碼序號 (order) 索引，二重保險錨點
+    let MOTHER_LIST = [];
 
     let capturedImages = {};
-    let currentSlotType = null, currentSlotId = null;
+    let currentSlotType = null;
+    let currentSlotId = null;
     
-    let activeQueue = [];      // 正規戶
-    let noiseQueue = [];       // 待核對雜訊
-    let currentGateTab = 'active';
-
+    let activeQueue = [];
     let aggregatedStops = [];
     let currentStopIndex = 0;
     let currentStopStartTime = null;
     let stopwatchInterval = null;
-    let tripLog = { startKm: 0, endKm: 0 };
+    let currentGateTab = 'delivery'; // 'delivery' | 'paused' | 'unmatched'
+
+    let tripLog = {
+      startKm: 0,
+      endKm: 0
+    };
 
     /* ============================================================
-       開頁動態同步母表（雙索引映射：ID ＋ 序號）
+       開頁同步母表（標準穩定 fetch ＋ 本地快取備援）
        ============================================================ */
     window.addEventListener('DOMContentLoaded', async () => {
       const badge = document.getElementById('system-status-badge');
@@ -446,48 +466,63 @@
         const json = await res.json();
         
         if (json.status === "success" && Array.isArray(json.data)) {
-          MOTHER_MAP_BY_ID.clear();
-          MOTHER_MAP_BY_ORDER.clear();
-
-          json.data.forEach(item => {
-            const id = String(item.customerId || item.id).trim();
-            const orderRaw = String(item.order).trim();
-            const orderNorm = String(parseInt(orderRaw, 10));
-
-            const record = {
-              id: id,
-              order: parseInt(orderRaw, 10) || 9999,
-              orderStr: orderRaw,
-              address: item.address || "",
-              memo: item.boxLocation || item.memo || "門口",
-              warning: item.warningNotes || "",
-              community: item.community || "",
-              zone: item.zone || "",
-              isGroup: item.isGroup === true || item.isGroup === "true" || id.startsWith("6") || id.startsWith("5"),
-              isWisden: id === "6Q291",
-              isLateKg: id === "6H531",
-              bainian: item.bainian || null
-            };
-
-            MOTHER_MAP_BY_ID.set(id, record);
-            MOTHER_MAP_BY_ORDER.set(orderNorm, record);
-            MOTHER_MAP_BY_ORDER.set(orderRaw, record);
-          });
-
-          badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP_BY_ID.size} 戶)`;
+          MOTHER_LIST = json.data;
+          localStorage.setItem('jianan_master_cache', JSON.stringify(json.data));
+          loadMotherMap(json.data);
+          badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP.size} 戶)`;
           badge.classList.add('ready');
         } else {
-          throw new Error("格式異常");
+          throw new Error("回傳格式異常");
         }
       } catch (err) {
+        console.warn("母表抓取失敗，嘗試載入本地快取:", err);
+        const cached = localStorage.getItem('jianan_master_cache');
+        if (cached) {
+          try {
+            const data = JSON.parse(cached);
+            loadMotherMap(data);
+            badge.textContent = `🟡 使用快取母表 (${MOTHER_MAP.size} 戶)`;
+            badge.className = "status-badge cached";
+            return;
+          } catch(e) {}
+        }
         badge.textContent = `⚠️ 母表連線異常: ${err.message}`;
         badge.style.background = "#7f1d1d";
         badge.style.color = "#fecaca";
       }
     });
 
+    function loadMotherMap(dataList) {
+      MOTHER_MAP.clear();
+      MOTHER_ORDER_MAP.clear();
+
+      dataList.forEach(item => {
+        const id = String(item.customerId || item.id).trim();
+        const rawOrder = String(item.order || "").trim();
+        const orderStr = rawOrder.padStart(4, '0');
+
+        const metaObj = {
+          id: id,
+          order: orderStr,
+          orderNum: parseInt(orderStr, 10) || 9999,
+          address: item.address || "",
+          memo: item.boxLocation || item.memo || "門口",
+          warning: item.warningNotes || "",
+          community: item.community || "",
+          zone: item.zone || "",
+          isGroup: item.isGroup === true || item.isGroup === "true" || id.startsWith("6") || id.startsWith("5"),
+          isWisden: id === "6Q291",
+          isLateKg: id === "6H531",
+          bainian: item.bainian || null
+        };
+
+        if (id) MOTHER_MAP.set(id, metaObj);
+        if (orderStr) MOTHER_ORDER_MAP.set(orderStr, metaObj);
+      });
+    }
+
     /* ============================================================
-       相機呼叫與 2048px 高清取樣壓縮 (Quality 0.88)
+       相機呼叫與 2048px 高清取樣壓縮
        ============================================================ */
     function triggerCapture(type, id) {
       currentSlotType = type;
@@ -504,7 +539,7 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          // 提升至 2048px 高清取樣，完整保留針點列印邊界與星號
+          // 提升至 2048px 高清取樣，保留點陣墨點邊界與星號特徵
           const targetWidth = 2048;
           const scale = targetWidth / img.width;
           canvas.width = targetWidth;
@@ -512,7 +547,7 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+          const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
           const slotKey = `${currentSlotType}_${currentSlotId}`;
           capturedImages[slotKey] = base64;
 
@@ -532,11 +567,11 @@
     });
 
     /* ============================================================
-       辨識後端對接與多重錨定對齊邏輯
+       辨識後端對接與二重保險對齊
        ============================================================ */
     async function startProcessingFlow() {
-      if (MOTHER_MAP_BY_ID.size === 0) {
-        alert("尚未成功載入母表，請重新整理！");
+      if (MOTHER_MAP.size === 0) {
+        alert("尚未成功載入母表資料，請確認網路連線或重新整理！");
         return;
       }
 
@@ -547,7 +582,9 @@
       }
 
       const overlay = document.getElementById('loading-overlay');
+      const loadText = document.getElementById('loading-text');
       overlay.style.display = 'flex';
+      loadText.textContent = `⚡ 正在解析 ${keys.length} 張高清單據...`;
 
       try {
         const requests = keys.map(key => {
@@ -558,46 +595,58 @@
           })
           .then(res => res.json())
           .then(resJson => {
-            if (resJson.status !== 'success') throw new Error(resJson.message);
-            return resJson.data; // [["0160", "30514718", 1, "卵:c:1"], ...]
+            if (resJson.status !== 'success') throw new Error(resJson.message || "後端解析失敗");
+            return resJson.data; // 得到 [["0160", "30514718", 1, "卵:c:1"], ...]
           });
         });
 
         const batchResults = await Promise.all(requests);
-        let rawRows = [];
-        batchResults.forEach(batch => { if (Array.isArray(batch)) rawRows = rawRows.concat(batch); });
+        let rawExtractedRows = [];
+        batchResults.forEach(batch => {
+          if (Array.isArray(batch)) rawExtractedRows = rawExtractedRows.concat(batch);
+        });
 
-        if (rawRows.length === 0) throw new Error("未辨識出任何明細。");
+        if (rawExtractedRows.length === 0) {
+          throw new Error("影像未偵測到任何出貨明細，請重新拍攝。");
+        }
 
         const nameMap = { "原": "原味", "淡": "原味", "麥": "麥芽", "卵": "卵磷脂", "巧": "巧克力", "莓": "草莓", "堅": "堅果", "低": "低脂", "酪": "酪乳", "優": "優酪乳", "大": "大瓶936cc" };
         
-        // 解析複合品項（一行多品項切分）
-        const parsedDailyList = rawRows.map(row => {
-          const [rawSeq, rawId, activeFlag, itemsStr] = row;
-          const items = (itemsStr || "").split(',').map(s => {
-            const parts = s.split(':');
+        const parsedDailyList = rawExtractedRows.map(row => {
+          const rawSeq = String(row[0] || "").trim();
+          const rawId = String(row[1] || "").trim();
+          const activeFlag = row[2];
+          const itemsStr = String(row[3] || "");
+
+          // 一行多品項解析 (逗號分割)
+          const items = itemsStr.split(',').filter(Boolean).map(str => {
+            const parts = str.split(':');
+            const nameShort = parts[0];
+            const tempFlag = parts[1];
+            const cnt = parseInt(parts[2], 10) || 1;
             return {
-              name: nameMap[parts[0]] || parts[0] || "原味",
-              temp: parts[1] === 'c' ? 'cold' : 'hot',
-              count: parseInt(parts[2], 10) || 1
+              name: nameMap[nameShort] || nameShort || "原味",
+              temp: tempFlag === 'c' ? 'cold' : 'hot',
+              count: cnt
             };
           });
+
           return {
-            seq: String(rawSeq || "").trim(),
-            id: String(rawId || "").trim(),
+            seq: rawSeq.padStart(4, '0'),
+            id: rawId,
             active: activeFlag === 1,
-            items: items
+            items: items.length > 0 ? items : [{ name: "原味", temp: "hot", count: 1 }]
           };
         });
 
-        // 啟動多重錨定對齊
-        reconcileWithTripleAnchor(parsedDailyList);
+        // 啟動二重錨定對齊
+        activeQueue = reconcileWithMotherTable(parsedDailyList);
         overlay.style.display = 'none';
         goToStep(2);
 
       } catch (err) {
         overlay.style.display = 'none';
-        alert(`❌ 辨識中斷：${err.message}`);
+        alert(`❌ 辨識中斷（未生成虛構資料）：\n${err.message}`);
       }
     }
 
@@ -610,203 +659,204 @@
         for (let j = 1; j <= a.length; j++) {
           m[i][j] = b.charAt(i - 1) === a.charAt(j - 1)
             ? m[i - 1][j - 1]
-            : Math.min(m[i - 1][j - 1] + 1, m[i - 1][j] + 1, m[i - 1][j] + 1);
+            : Math.min(m[i - 1][j - 1] + 1, m[i - 1][j] + 1, m[i][j - 1] + 1);
         }
       }
       return m[b.length][a.length];
     }
 
-    /* 多重錨定對齊算法（ID 優先 ➔ 序號次之 ➔ 未中歸入雜訊） */
-    function reconcileWithTripleAnchor(dailyList) {
-      activeQueue = [];
-      noiseQueue = [];
+    /* 
+       多重錨定比對機制：
+       1. 第一優先：8 碼客戶 ID（完全吻合或 1 碼容錯）
+       2. 第二保險：若 ID 失敗，以 4 碼序號（seq）對齊母表 order
+       3. 雜訊隔離：ID 與序號皆對不上者，標記為 isUnmatched = true
+    */
+    function reconcileWithMotherTable(dailyList) {
+      let combined = [];
 
       dailyList.forEach(daily => {
         let matchedMeta = null;
 
-        // 1. 第一優先：8 碼客戶 ID 完全匹配
-        if (daily.id && MOTHER_MAP_BY_ID.has(daily.id)) {
-          matchedMeta = MOTHER_MAP_BY_ID.get(daily.id);
+        // 1. 第一優先：8 碼 ID 完全匹配
+        if (daily.id && MOTHER_MAP.has(daily.id)) {
+          matchedMeta = MOTHER_MAP.get(daily.id);
         }
 
-        // 2. 1 碼容錯（限長度 >= 6 碼）
-        if (!matchedMeta && daily.id && daily.id.length >= 6) {
-          for (let [mId, meta] of MOTHER_MAP_BY_ID.entries()) {
-            if (getEditDistance(daily.id, mId) === 1) {
+        // 1-1. ID 1 碼容錯
+        if (!matchedMeta && daily.id.length >= 6) {
+          for (let [mId, meta] of MOTHER_MAP.entries()) {
+            if (getEditDistance(daily.id, mId) <= 1) {
               matchedMeta = meta;
               break;
             }
           }
         }
 
-        // 3. 第二保險：若 ID 失敗，以出貨單第 1 欄 4 碼序號精準對齊母表 order
-        if (!matchedMeta && daily.seq) {
-          const seqNorm = String(parseInt(daily.seq, 10));
-          if (MOTHER_MAP_BY_ORDER.has(seqNorm)) {
-            matchedMeta = MOTHER_MAP_BY_ORDER.get(seqNorm);
-          } else if (MOTHER_MAP_BY_ORDER.has(daily.seq)) {
-            matchedMeta = MOTHER_MAP_BY_ORDER.get(daily.seq);
-          }
+        // 2. 第二保險：若 ID 失敗，改用 4 碼序號（seq）對齊母表 order
+        if (!matchedMeta && daily.seq && MOTHER_ORDER_MAP.has(daily.seq)) {
+          matchedMeta = MOTHER_ORDER_MAP.get(daily.seq);
         }
 
         if (matchedMeta) {
-          activeQueue.push({
+          let memoText = matchedMeta.memo;
+          if (matchedMeta.warning) memoText += ` (⚠️${matchedMeta.warning})`;
+
+          combined.push({
             id: matchedMeta.id,
             order: matchedMeta.order,
+            orderNum: matchedMeta.orderNum,
             address: matchedMeta.address,
-            memo: matchedMeta.warning ? `${matchedMeta.memo} (⚠️${matchedMeta.warning})` : matchedMeta.memo,
+            memo: memoText,
             community: matchedMeta.community,
             items: daily.items,
             active: daily.active,
             isGroup: matchedMeta.isGroup,
             isWisden: matchedMeta.isWisden,
             isLateKg: matchedMeta.isLateKg,
-            bainian: matchedMeta.bainian
+            bainian: matchedMeta.bainian,
+            isUnmatched: false
           });
         } else {
-          // 未配對資料：絕不硬套，標記為待核對雜訊
-          noiseQueue.push(daily);
+          // 3. 雜訊隔離：ID 與序號皆對不上，標為待核對雜訊，絕不硬套住戶
+          combined.push({
+            id: daily.id || "未知ID",
+            order: daily.seq || "9999",
+            orderNum: 9999,
+            address: `待核對雜訊 (序號:${daily.seq} / ID:${daily.id})`,
+            memo: "未對齊母表，請人工確認",
+            community: "",
+            items: daily.items,
+            active: false,
+            isGroup: false,
+            isWisden: false,
+            isLateKg: false,
+            bainian: null,
+            isUnmatched: true
+          });
         }
       });
 
-      // 嚴格依母表 order 昇冪排序
-      activeQueue.sort((a, b) => a.order - b.order);
+      // 嚴格依母表 order 排序
+      combined.sort((a, b) => a.orderNum - b.orderNum);
 
-      // 方案 A 錨定排序：中豐路 187 號 (30519581) 順接 33 號 (30542842) 後方
-      const idx187 = activeQueue.findIndex(c => c.id === "30519581");
-      const idx33 = activeQueue.findIndex(c => c.id === "30542842");
+      // 方案 A 錨定排序：187 號 (30519581) 順接 33 號 (30542842) 後方
+      const idx187 = combined.findIndex(c => c.id === "30519581");
+      const idx33 = combined.findIndex(c => c.id === "30542842");
       if (idx187 !== -1 && idx33 !== -1 && idx187 !== idx33 + 1) {
-        const item187 = activeQueue.splice(idx187, 1)[0];
-        const newIdx33 = activeQueue.findIndex(c => c.id === "30542842");
-        activeQueue.splice(newIdx33 + 1, 0, item187);
+        const item187 = combined.splice(idx187, 1)[0];
+        const newIdx33 = combined.findIndex(c => c.id === "30542842");
+        combined.splice(newIdx33 + 1, 0, item187);
       }
+
+      return combined;
     }
 
     /* ============================================================
-       Data Gate 檢查站渲染與操作
+       步驟 2：Data Gate 資料檢查站（過濾器與膠囊微調）
        ============================================================ */
     function switchGateTab(tab) {
       currentGateTab = tab;
-      document.getElementById('tab-btn-active').classList.toggle('active', tab === 'active');
-      document.getElementById('tab-btn-paused').classList.toggle('active', tab === 'paused');
-      document.getElementById('tab-btn-noise').classList.toggle('active', tab === 'noise');
+      document.getElementById('tab-delivery').classList.toggle('active', tab === 'delivery');
+      document.getElementById('tab-paused').classList.toggle('active', tab === 'paused');
+      document.getElementById('tab-unmatched').classList.toggle('active', tab === 'unmatched');
       renderStep2Review();
     }
 
     function renderStep2Review() {
       const container = document.getElementById('review-list-container');
       container.innerHTML = '';
+      let total = 0, hot = 0, cold = 0, activeCount = 0;
+      let pausedCount = 0, unmatchedCount = 0;
 
-      let totalBottles = 0, hotCount = 0, coldCount = 0, sendStops = 0, pauseStops = 0;
-
-      activeQueue.forEach(c => {
-        if (c.active) {
-          sendStops++;
-          c.items.forEach(i => {
-            totalBottles += i.count;
-            if (i.temp === 'hot') hotCount += i.count; else coldCount += i.count;
+      activeQueue.forEach((cust, custIdx) => {
+        if (cust.isUnmatched) {
+          unmatchedCount++;
+        } else if (cust.active) {
+          activeCount++;
+          cust.items.forEach(i => {
+            total += i.count;
+            if (i.temp === 'hot') hot += i.count;
+            else cold += i.count;
           });
         } else {
-          pauseStops++;
+          pausedCount++;
         }
+
+        // 依據當前選取的過濾器篩選展示
+        let shouldShow = false;
+        if (currentGateTab === 'delivery' && cust.active && !cust.isUnmatched) shouldShow = true;
+        if (currentGateTab === 'paused' && !cust.active && !cust.isUnmatched) shouldShow = true;
+        if (currentGateTab === 'unmatched' && cust.isUnmatched) shouldShow = true;
+
+        if (!shouldShow) return;
+
+        const div = document.createElement('div');
+        div.className = `review-item ${cust.active ? '' : 'paused'}`;
+        
+        // 膠囊微調品項
+        const itemsChips = cust.items.map((i, itemIdx) => `
+          <span class="edit-chip">
+            <span style="cursor:pointer; color:${i.temp === 'hot' ? 'var(--hot)' : 'var(--cold)'}; font-weight:800;" onclick="toggleItemTemp(${custIdx}, ${itemIdx})">
+              ${i.temp === 'hot' ? '🔥熱' : '❄️冷'}
+            </span>
+            <b>${i.name}</b>
+            <button class="edit-btn" onclick="adjustItemQty(${custIdx}, ${itemIdx}, -1)">-</button>
+            <span style="font-weight:800;">${i.count}</span>
+            <button class="edit-btn" onclick="adjustItemQty(${custIdx}, ${itemIdx}, 1)">+</button>
+          </span>
+        `).join('');
+
+        div.innerHTML = `
+          <div class="review-header-row">
+            <div>
+              <span style="font-weight:700;">[序號 ${cust.order}] ${cust.address} ${cust.isGroup ? '🏫' : ''}</span>
+              <span style="font-size:11px; color:var(--text-dim); display:block;">ID: ${cust.id} | ${cust.memo}</span>
+            </div>
+            <span class="toggle-tag ${cust.active ? 'send' : 'pause'}" onclick="toggleCustomer(${custIdx})">
+              ${cust.active ? '送' : '停'}
+            </span>
+          </div>
+          <div>
+            ${itemsChips}
+            <button class="add-flavor-btn" onclick="promptAddFlavor(${custIdx})">＋ 加口味</button>
+          </div>
+        `;
+        container.appendChild(div);
       });
 
-      document.getElementById('stat-total').textContent = totalBottles;
-      document.getElementById('stat-hot').textContent = hotCount;
-      document.getElementById('stat-cold').textContent = coldCount;
-      document.getElementById('stat-stops').textContent = sendStops;
+      // 更新統計數值
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-hot').textContent = hot;
+      document.getElementById('stat-cold').textContent = cold;
+      document.getElementById('stat-stops').textContent = activeCount;
 
-      document.getElementById('tab-cnt-active').textContent = sendStops;
-      document.getElementById('tab-cnt-paused').textContent = pauseStops;
-      
-      const noiseBtn = document.getElementById('tab-btn-noise');
-      if (noiseQueue.length > 0) {
-        noiseBtn.style.display = 'block';
-        document.getElementById('tab-cnt-noise').textContent = noiseQueue.length;
-      } else {
-        noiseBtn.style.display = 'none';
-      }
+      document.getElementById('tab-delivery').textContent = `📦 配送 (${activeCount})`;
+      document.getElementById('tab-paused').textContent = `🚫 停送 (${pausedCount})`;
+      document.getElementById('tab-unmatched').textContent = `⚠️ 雜訊 (${unmatchedCount})`;
 
-      // 對帳指標
       const targetBottles = parseInt(document.getElementById('input-target-bottles').value, 10) || 100;
       const statusBadge = document.getElementById('gate-target-status');
-      if (totalBottles === targetBottles) {
-        statusBadge.textContent = `✔ 總數相符 (${totalBottles}瓶)`;
+      if (total === targetBottles) {
+        statusBadge.textContent = `✔ 總數相符 (${total}瓶)`;
         statusBadge.className = "gate-target-badge gate-match";
       } else {
-        statusBadge.textContent = `⚠️ 差 ${Math.abs(targetBottles - totalBottles)} 瓶 (現有${totalBottles}/紙本${targetBottles})`;
+        statusBadge.textContent = `⚠️ 差 ${Math.abs(targetBottles - total)} 瓶 (現有${total}/紙本${targetBottles})`;
         statusBadge.className = "gate-target-badge gate-mismatch";
-      }
-
-      // 依當前頁籤呈現
-      if (currentGateTab === 'active' || currentGateTab === 'paused') {
-        activeQueue.forEach((cust, custIdx) => {
-          if (currentGateTab === 'active' && !cust.active) return;
-          if (currentGateTab === 'paused' && cust.active) return;
-
-          const card = document.createElement('div');
-          card.className = `review-card ${cust.active ? '' : 'paused'}`;
-
-          const capsulesHtml = cust.items.map((it, itemIdx) => `
-            <span class="item-capsule">
-              <span class="capsule-temp" style="color:${it.temp === 'hot' ? 'var(--hot)' : 'var(--cold)'}" onclick="toggleCapsuleTemp(${custIdx}, ${itemIdx})">
-                ${it.temp === 'hot' ? '🔥熱' : '❄️冷'}
-              </span>
-              <b>${it.name}</b>
-              <button class="capsule-btn" onclick="adjustCapsuleQty(${custIdx}, ${itemIdx}, -1)">-</button>
-              <span>${it.count}</span>
-              <button class="capsule-btn" onclick="adjustCapsuleQty(${custIdx}, ${itemIdx}, 1)">+</button>
-            </span>
-          `).join('');
-
-          card.innerHTML = `
-            <div class="review-card-header">
-              <div>
-                <span style="font-weight:800; font-size:14px;">[序號 ${cust.order}] ${cust.address} ${cust.isGroup ? '🏫' : ''}</span>
-                <span style="font-size:11px; color:var(--text-dim); display:block;">ID: ${cust.id} | ${cust.memo}</span>
-              </div>
-              <button onclick="toggleCustomerStatus(${custIdx})" style="padding:4px 10px; border-radius:6px; border:none; font-weight:800; cursor:pointer; background:${cust.active ? '#065f46' : '#7f1d1d'}; color:#fff;">
-                ${cust.active ? '配送中' : '已停送'}
-              </button>
-            </div>
-            <div class="capsule-list">
-              ${capsulesHtml}
-              <button class="btn-add-flavor" onclick="addNewFlavor(${custIdx})">＋ 加口味</button>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-      } else if (currentGateTab === 'noise') {
-        // 雜訊專屬清單
-        noiseQueue.forEach((noise, noiseIdx) => {
-          const card = document.createElement('div');
-          card.className = "review-card noise";
-          card.innerHTML = `
-            <div class="review-card-header">
-              <div>
-                <span style="font-weight:800; color:var(--warning);">⚠️ 待核對雜訊 [序號: ${noise.seq || '無'}]</span>
-                <span style="font-size:11px; color:var(--text-dim); display:block;">識別ID: ${noise.id} | 品項: ${noise.items.map(i=>i.name+'x'+i.count).join(' ')}</span>
-              </div>
-              <button onclick="deleteNoise(${noiseIdx})" style="background:#475569; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer;">捨棄</button>
-            </div>
-          `;
-          container.appendChild(card);
-        });
       }
     }
 
-    function toggleCustomerStatus(idx) {
+    function toggleCustomer(idx) {
       activeQueue[idx].active = !activeQueue[idx].active;
       renderStep2Review();
     }
 
-    function toggleCapsuleTemp(custIdx, itemIdx) {
+    function toggleItemTemp(custIdx, itemIdx) {
       const it = activeQueue[custIdx].items[itemIdx];
       it.temp = it.temp === 'hot' ? 'cold' : 'hot';
       renderStep2Review();
     }
 
-    function adjustCapsuleQty(custIdx, itemIdx, delta) {
+    function adjustItemQty(custIdx, itemIdx, delta) {
       const it = activeQueue[custIdx].items[itemIdx];
       it.count += delta;
       if (it.count <= 0) {
@@ -816,37 +866,40 @@
       renderStep2Review();
     }
 
-    function addNewFlavor(custIdx) {
-      const flavor = prompt("請輸入新增口味 (如: 原味, 卵磷脂, 巧克力, 草莓, 麥芽, 堅果, 低脂):", "原味");
+    function promptAddFlavor(custIdx) {
+      const flavor = prompt("請輸入新增口味名稱 (如 原味、卵磷脂、草莓、巧克力、麥芽)：", "原味");
       if (!flavor) return;
-      activeQueue[custIdx].items.push({ name: flavor.trim(), temp: 'hot', count: 1 });
+      const tempStr = confirm("按【確定】為 熱飲(🔥)，按【取消】為 冷飲(❄️)") ? "hot" : "cold";
+      activeQueue[custIdx].items.push({ name: flavor, temp: tempStr, count: 1 });
+      activeQueue[custIdx].active = true;
       renderStep2Review();
-    }
-
-    function deleteNoise(noiseIdx) {
-      noiseQueue.splice(noiseIdx, 1);
-      if (noiseQueue.length === 0) switchGateTab('active');
-      else renderStep2Review();
     }
 
     function quickAddCustomer() {
       const input = document.getElementById('input-quick-add');
-      const id = input.value.trim();
-      if (!id) return;
+      const val = input.value.trim();
+      if (!val) return;
 
-      const meta = MOTHER_MAP_BY_ID.get(id);
+      // 支援 8 碼客戶 ID 或 4 碼序號查詢
+      let meta = MOTHER_MAP.get(val);
+      if (!meta && val.length <= 4) {
+        meta = MOTHER_ORDER_MAP.get(val.padStart(4, '0'));
+      }
+
       if (!meta) {
-        alert("母表中未找到此客戶編號！");
+        alert("母表中未找到此 客戶ID 或 4碼序號！");
         return;
       }
 
-      const existing = activeQueue.find(c => c.id === id);
+      const existing = activeQueue.find(c => c.id === meta.id);
       if (existing) {
         existing.active = true;
+        existing.isUnmatched = false;
       } else {
         activeQueue.push({
           id: meta.id,
           order: meta.order,
+          orderNum: meta.orderNum,
           address: meta.address,
           memo: meta.memo,
           community: meta.community,
@@ -855,19 +908,21 @@
           isGroup: meta.isGroup,
           isWisden: meta.isWisden,
           isLateKg: meta.isLateKg,
-          bainian: meta.bainian
+          bainian: meta.bainian,
+          isUnmatched: false
         });
-        activeQueue.sort((a, b) => a.order - b.order);
+        activeQueue.sort((a, b) => a.orderNum - b.orderNum);
       }
       input.value = '';
-      renderStep2Review();
+      currentGateTab = 'delivery';
+      switchGateTab('delivery');
     }
 
     /* ============================================================
-       步驟 3：真物理裝箱配置（保留踏板副箱）
+       步驟 3：裝箱演算法與踏板副箱
        ============================================================ */
     function calculatePackingAndGo() {
-      const activeList = activeQueue.filter(c => c.active);
+      const activeList = activeQueue.filter(c => c.active && !c.isUnmatched);
       let auxHotBagList = [];
       let mainHotBottles = [];
       let mainColdFlavors = {};
@@ -935,7 +990,7 @@
     function renderFlavorTags(id, dict) {
       const el = document.getElementById(id);
       el.innerHTML = '';
-      if (Object.keys(dict).length === 0) { el.innerHTML = '<span style="color:var(--text-dim);font-size:12px;">無</span>'; return; }
+      if (Object.keys(dict).length === 0) { el.innerHTML = '<span style="color:var(--text-dim);font-size:13px;">無</span>'; return; }
       for (const [name, count] of Object.entries(dict)) {
         const span = document.createElement('span');
         span.className = 'flavor-tag';
@@ -945,11 +1000,11 @@
     }
 
     /* ============================================================
-       步驟 4：出車檢核（里程 ＋ 冰塊 ＋ 威士登鑰匙）
+       步驟 4：行前出車檢查
        ============================================================ */
     function checkKeyAndGo() {
-      const isWisden = activeQueue.some(c => c.active && c.isWisden);
-      document.getElementById('key-alert-box').style.display = isWisden ? 'block' : 'none';
+      const isWisden = activeQueue.some(c => c.active && c.isWisden && !c.isUnmatched);
+      document.getElementById('key-alert-box').classList.toggle('active', isWisden);
       document.getElementById('key-free-card').style.display = isWisden ? 'none' : 'block';
       goToStep(4);
     }
@@ -965,9 +1020,9 @@
         return;
       }
 
-      const isWisden = activeQueue.some(c => c.active && c.isWisden);
+      const isWisden = activeQueue.some(c => c.active && c.isWisden && !c.isUnmatched);
       if (isWisden && !document.getElementById('key-confirm-check').checked) {
-        alert("今日威士登幼兒園有排送，請確認鑰匙已在身上！");
+        alert("今日威士登幼兒園有排送，請勾選確認已攜帶鑰匙！");
         return;
       }
 
@@ -979,10 +1034,10 @@
     }
 
     /* ============================================================
-       站點聚合算法：同社區/同門牌多樓層合併為單站
+       站點聚合算法
        ============================================================ */
     function buildAggregatedStops() {
-      const activeList = activeQueue.filter(c => c.active);
+      const activeList = activeQueue.filter(c => c.active && !c.isUnmatched);
       aggregatedStops = [];
 
       activeList.forEach(cust => {
@@ -1042,7 +1097,6 @@
       document.getElementById('current-memo').textContent = `📦 ${stop.orders.map(o => o.memo).join(' | ')}`;
       document.getElementById('current-index-label').textContent = `站點 ${currentStopIndex + 1} / ${aggregatedStops.length} (共 ${stop.orders.length} 戶)`;
 
-      // 百年大鎮視圖
       const bainianBox = document.getElementById('bainian-special-box');
       const laneMatch = stop.rawAddress.match(/(\d+)\s*車道/);
       const blockMatch = stop.rawAddress.match(/百年大鎮\s*([A-Za-z0-9\u4e00-\u9fa5]+?)(?=[♁♂\d號樓門車]|$)/);
@@ -1062,20 +1116,14 @@
         bainianBox.classList.remove('show');
       }
 
-      // 訂單品項列表
       const itemsBox = document.getElementById('current-items-box');
       itemsBox.innerHTML = '';
       stop.orders.forEach(ord => {
         ord.items.forEach(i => {
           const row = document.createElement('div');
-          row.style.fontSize = "18px";
-          row.style.fontWeight = "800";
-          row.style.display = "flex";
-          row.style.alignItems = "center";
-          row.style.gap = "8px";
-          row.style.marginBottom = "6px";
+          row.className = 'delivery-item-row';
           row.innerHTML = `
-            <span style="font-size:12px; padding:2px 6px; border-radius:4px; color:#fff; background:${i.temp === 'hot' ? 'var(--hot)' : 'var(--cold)'}">${i.temp === 'hot' ? '熱' : '冷'}</span>
+            <span class="temp-pill ${i.temp}">${i.temp === 'hot' ? '熱' : '冷'}</span>
             <span>${i.name} <b>${i.count} 瓶</b> (${CAP_MAP[i.name] || '瓶蓋'})</span>
             <span style="font-size:12px; color:var(--text-dim); margin-left:auto;">[序號 ${ord.order}]</span>
           `;
@@ -1133,11 +1181,11 @@
 
     function finishAllDelivery() {
       clearInterval(stopwatchInterval);
-      const endKm = parseFloat(prompt("🎉 本日配送全數完成！請輸入回站機車里程 (km)："));
+      const endKm = parseFloat(prompt("🎉 本日配送已全數完成！請輸入回站機車里程數 (km)："));
       if (!isNaN(endKm) && endKm >= tripLog.startKm) {
         tripLog.endKm = endKm;
         const dist = (endKm - tripLog.startKm).toFixed(1);
-        alert(`行程結案！本日配送總里程：${dist} km\n早點休息！`);
+        alert(`行程已結案！本日總配送里程：${dist} km\n辛苦了，早點休息！`);
       } else {
         alert("本日全線配送完成！辛苦了！");
       }
