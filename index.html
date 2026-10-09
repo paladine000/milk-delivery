@@ -412,51 +412,75 @@
     /* ============================================================
        開頁連動母表：改走 POST（避開 302 跨域轉址攔截）
        ============================================================ */
+/* ============================================================
+   開頁連動母表：採用 JSONP，徹底免疫 CORS、預檢與 405 轉址限制
+   ============================================================ */
     window.addEventListener('DOMContentLoaded', () => {
       fetchMotherTable();
     });
-
-    async function fetchMotherTable() {
+    
+    function fetchMotherTable() {
       const badge = document.getElementById('system-status-badge');
       badge.textContent = "🔄 同步母表中...";
       badge.className = "status-badge";
-
-      try {
-        // 使用 POST 呼叫，完全避開 Google Apps Script GET 的 302 轉址 CORS 缺陷
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ action: 'getMaster' })
-        });
-
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const json = await res.json();
+    
+      return new Promise((resolve) => {
+        // 產生唯一回呼名稱，避免快取衝突
+        const callbackName = 'jianan_cb_' + Date.now();
+        const script = document.createElement('script');
+    
+        // 逾時安全機制（5 秒內未回應切換快取）
+        const timeoutTimer = setTimeout(() => {
+          cleanup();
+          handleFallback("連線逾時 (5秒)");
+        }, 5000);
+    
+        function cleanup() {
+          clearTimeout(timeoutTimer);
+          delete window[callbackName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+    
+        // 成功接收資料回呼
+        window[callbackName] = function(json) {
+          cleanup();
+          if (json && json.status === "success" && Array.isArray(json.data)) {
+            MOTHER_LIST = json.data;
+            localStorage.setItem('jianan_master_cache', JSON.stringify(json.data));
+            loadMotherMap(json.data);
+            badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP.size} 戶)`;
+            badge.className = "status-badge ready";
+            resolve();
+          } else {
+            handleFallback(json ? json.message : "資料格式異常");
+          }
+        };
+    
+        // 載入失敗備援處理
+        function handleFallback(errMsg) {
+          cleanup();
+          console.warn("母表連線中斷，載入本地快取:", errMsg);
+          const cached = localStorage.getItem('jianan_master_cache');
+          if (cached) {
+            try {
+              loadMotherMap(JSON.parse(cached));
+              badge.textContent = `🟡 使用快取母表 (${MOTHER_MAP.size} 戶)`;
+              badge.className = "status-badge cached";
+              return resolve();
+            } catch(e) {}
+          }
+          badge.textContent = `⚠️ 連線中斷: ${errMsg} (點此重試)`;
+          badge.style.background = "#7f1d1d";
+          badge.style.color = "#fecaca";
+          resolve();
+        }
+    
+        script.onerror = () => handleFallback("網絡或端點錯誤");
         
-        if (json.status === "success" && Array.isArray(json.data)) {
-          MOTHER_LIST = json.data;
-          localStorage.setItem('jianan_master_cache', JSON.stringify(json.data));
-          loadMotherMap(json.data);
-          badge.textContent = `🟢 雲端母表已連動 (${MOTHER_MAP.size} 戶)`;
-          badge.className = "status-badge ready";
-        } else {
-          throw new Error(json.message || "格式異常");
-        }
-      } catch (err) {
-        console.warn("POST 連線異常，檢查本地快取:", err);
-        const cached = localStorage.getItem('jianan_master_cache');
-        if (cached) {
-          try {
-            const data = JSON.parse(cached);
-            loadMotherMap(data);
-            badge.textContent = `🟡 使用快取母表 (${MOTHER_MAP.size} 戶)`;
-            badge.className = "status-badge cached";
-            return;
-          } catch(e) {}
-        }
-        badge.textContent = `⚠️ 連線中斷: ${err.message} (點此重試)`;
-        badge.style.background = "#7f1d1d";
-        badge.style.color = "#fecaca";
-      }
+        // 注入 Script 標籤觸發 GET
+        script.src = `${GAS_URL}?callback=${callbackName}`;
+        document.body.appendChild(script);
+      });
     }
 
     function loadMotherMap(dataList) {
